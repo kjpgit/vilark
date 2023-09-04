@@ -1,0 +1,5 @@
+artifacts/
+dotnet_sdk/
+private/
+*.swp
+vilark
