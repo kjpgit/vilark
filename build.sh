@@ -10,6 +10,7 @@ cd `dirname $0`
 DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/32f2c846-5581-4638-a428-5891dd76f630/ee8beef066f06c57998058c5af6df222/dotnet-sdk-8.0.100-preview.7.23376.3-linux-x64.tar.gz
 
 DOTNET_DIR=dotnet_sdk
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 if [ ! -f $DOTNET_DIR/done ]; then
   echo "Downloading and extracting dotnet SDK (200 MB) to $DOTNET_DIR/ ..."
