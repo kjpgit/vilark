@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simple build script for users that doesn't require make.
-# It does require curl.
+# It requires curl.
 
 set -eu
 set -o pipefail
