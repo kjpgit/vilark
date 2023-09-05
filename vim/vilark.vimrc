@@ -65,6 +65,9 @@ def ViLark_BrowseCurrentDirectory():
         chosen_file = open(tmp.name).read()
         if chosen_file:
             print(f"ViLark: Selected file is {chosen_file}")
+            # NB: Is there a list of what magic chars need escaping here?
+            # Files with '+', ':', and '<CR>' seem to work ok...because we prefix with "./"
+            chosen_file = chosen_file.replace("|", r"\|")
             vim.command(f"edit {chosen_file}")
         else:
             print("ViLark: Select was canceled")

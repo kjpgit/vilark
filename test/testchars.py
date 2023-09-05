@@ -14,3 +14,10 @@ make_file("UTF8 Smile   |😊|...")
 make_file("UTF8 Normal  |♠♥♦♣|")
 make_file("Super Long File " + ("X")*100 + " Ending Now.txt")
 
+# These files are probably working because ViLark returns them as ./<filename>
+make_file("<CR> File.txt")
+make_file("CR File 2<CR>.txt")
+make_file("+Plus File.txt")
+make_file(":Colon File.txt")
+make_file(";Semi Colon File.txt")
+
