@@ -14,9 +14,11 @@ class InputModel
 
     public void LoadInput(OptionsModel optionsModel) {
         var inputFileName = Environment.GetEnvironmentVariable("VILARK_INPUT_FILE");
-        string? inputDisplayMode = Environment.GetEnvironmentVariable("VILARK_INPUT_DISPLAY");
-        bool displayAsFile = (inputDisplayMode == "DIR_BAR_FILE");
         if (inputFileName != null) {
+            // An explicit input file was given.
+            // Don't apply any ignore rules on it, use it exactly.
+            string? inputDisplayMode = Environment.GetEnvironmentVariable("VILARK_INPUT_DISPLAY");
+            bool displayAsFile = (inputDisplayMode == "DIR_BAR_FILE");
             List<ExternalInputEntry> entries = new();
             using (var inFile = File.OpenText(inputFileName)) {
                 while (true) {
@@ -29,6 +31,7 @@ class InputModel
             }
             _data = entries;
         } else {
+            // Load files, recursively, and honor all ignore rules
             var exp = new DirectoryExplorer();
             string path = optionsModel.SelectedDirectory ?? ".";
             _data = exp.ScanDirectory(path).ToList();
