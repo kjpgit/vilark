@@ -7,6 +7,8 @@ class IgnoreModel
     private static readonly IReadOnlyList<string> defaultConfigRules = new string[] {
         "# This file uses .gitignore format",
         ".git",
+        "*.swp",
+        "*.pyc",
         "node_modules",
         "obj",
         "bin",
