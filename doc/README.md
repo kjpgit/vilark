@@ -1,5 +1,28 @@
 # Vilark User Documentation
 
+## UX Key Bindings
+
+    Escape                    close/exit (without selecting anything)
+    Enter                     confirm selected file/item
+
+    Left/Right arrow          change tab
+    Up/Down arrow,            change selection
+      Tab/ShiftTab
+    PageUp/PageDown,          scroll (if scrollbar is indicated)
+      Home/End
+
+    Ctrl-w                    delete previous word (in search box)
+
+
+## File Handling
+
+* $EDITOR is used to open files
+
+* .gitignore files are checked at every level
+
+* $VILARK_IGNORE_FILE holds additional ignore patterns (Default: ~/.config/vilark/ignore_rules.txt)
+
+
 ## Options Tab
 
 ### "When multiple search words are used"
