@@ -65,10 +65,7 @@ def ViLark_BrowseCurrentDirectory():
         chosen_file = open(tmp.name).read()
         if chosen_file:
             print(f"ViLark: Selected file is {chosen_file}")
-            # NB: Is there a list of what magic chars need escaping here?
-            # Files with '+', ':', and '<CR>' seem to work ok...because we prefix with "./"
-            chosen_file = chosen_file.replace("|", r"\|")
-            vim.command(f"edit {chosen_file}")
+            vim.command(f"ViLarkSafeEdit {chosen_file}")
         else:
             print("ViLark: Select was canceled")
 
@@ -95,8 +92,12 @@ def ViLark_BrowseCurrentBuffers():
             chosen_buffer_num = chosen_buffer_line.strip().split(' ')[0]
             print(f"ViLark: Selected buffer is ({chosen_buffer_num})")
             vim.command(f"buffer {chosen_buffer_num}")
+
         else:
             print("ViLark: Select was canceled")
 
 
 __python_vimcode_end__
+
+" Work around for fnameescape not being directly exposed to python
+command -nargs=1 ViLarkSafeEdit execute 'edit' fnameescape(<f-args>)
