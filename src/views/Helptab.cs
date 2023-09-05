@@ -19,9 +19,10 @@ class HelpTab: IView
         ctx.DrawRow("  Enter                     confirm selected file/item");
         ctx.DrawRow("");
         ctx.DrawRow("  Left/Right arrow          change tab");
-        ctx.DrawRow("  Up/Down arrow             change selection");
-        ctx.DrawRow("  Tab/ShiftTab              change selection");
-        ctx.DrawRow("  PageUp/PageDown           scroll (if scrollbar is indicated)");
+        ctx.DrawRow("  Up/Down arrow,            change selection");
+        ctx.DrawRow("    Tab/ShiftTab                            ");
+        ctx.DrawRow("  PageUp/PageDown,          scroll (if scrollbar is indicated)");
+        ctx.DrawRow("    Home/End                                                  ");
         ctx.DrawRow("");
         ctx.DrawRow("  Ctrl-w                    delete previous word (in search box)");
         ctx.DrawRow("");
