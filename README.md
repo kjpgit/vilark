@@ -45,8 +45,9 @@ characters and/or they have incorrect widths.  Please use a better font.
 
 ## Apple Support
 
-Mac OS is not currently supported.  If you can help with that, let me know.
-It probably only needs ~100 LOC to interface with libc.
+Mac OS is not currently supported, simply because I don't have access to a Mac
+for testing.  It needs ~50 lines of code to P/Invoke libSystem, for tty
+handling.
 
 ## About ViLark
 
