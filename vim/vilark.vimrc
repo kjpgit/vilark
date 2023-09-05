@@ -1,8 +1,7 @@
 python3 << __python_vimcode_end__
 ###################################################################################################
 #
-# ViLark vim integration.  (2023) Karl Pickett / ViLark project
-#
+# ViLark vim integration plugin.  (2023) Karl Pickett / ViLark project
 #
 # [[ Key Bindings ]]
 #
@@ -28,7 +27,9 @@ python3 << __python_vimcode_end__
 __python_vimcode_end__
 
 
-" Vim keyboard bindings, feel free to customize
+" Vim keyboard bindings, feel free to comment these out and
+" customize them in your personal vimrc instead.
+" TODO: A better way to customize these and still get plugin updates
 nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>
 nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>
 
@@ -40,15 +41,15 @@ python3 << __python_vimcode_end__
 #
 ###################################################################################################
 
-import json
 import os
 import subprocess
 import tempfile
-import time
 import vim
 
 # Either put vilark in your $PATH, or export VILARK=/path/to/vilark
 g_vilark_cmd = os.environ.get("VILARK", "vilark")
+# For any bug reports: :python3 print(g_vilark_plugin_version)
+g_vilark_plugin_version = "1.1"
 
 def ViLark_BrowseCurrentDirectory():
     with tempfile.NamedTemporaryFile(mode="w", suffix=".vilarktmp") as tmp:
@@ -92,7 +93,6 @@ def ViLark_BrowseCurrentBuffers():
             chosen_buffer_num = chosen_buffer_line.strip().split(' ')[0]
             print(f"ViLark: Selected buffer is ({chosen_buffer_num})")
             vim.command(f"buffer {chosen_buffer_num}")
-
         else:
             print("ViLark: Select was canceled")
 
