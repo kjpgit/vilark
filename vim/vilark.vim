@@ -8,8 +8,8 @@ python3 << __python_vimcode_end__
 # You must add them in your ~/.vimrc, according to your preferences.  Mine are:
 #
 #
-#    nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>"
-#    nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>"
+#    nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>
+#    nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>
 #
 #
 #
