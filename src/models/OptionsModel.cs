@@ -9,22 +9,24 @@ class OptionsModel
         string[] args = Environment.GetCommandLineArgs();
         for (int i = 1; i < args.Length; i++) {
             string arg = args[i];
-            if (!explicit_options_end && (arg == "-h" || arg == "--help")) {
-                ShowVersion();
-                ShowHelp();
-                Environment.Exit(0);
-            } else if (!explicit_options_end && arg == "--version") {
-                ShowVersion();
-                Environment.Exit(0);
-            } else if (arg == "--" && !explicit_options_end) {
-                explicit_options_end = true;
-            } else if (explicit_options_end) {
-                ParseNonOptions(args.AsSpan().Slice(i));
-            } else if (arg.StartsWith("-")) {
-                ShowUnknownOption(arg);
-                Environment.Exit(2);
+            if (!explicit_options_end) {
+                if (arg == "-h" || arg == "--help") {
+                    ShowVersion();
+                    ShowHelp();
+                    Environment.Exit(0);
+                } else if (arg == "--version") {
+                    ShowVersion();
+                    Environment.Exit(0);
+                } else if (arg == "--") {
+                    explicit_options_end = true;
+                } else if (arg.StartsWith("-")) {
+                    ShowUnknownOption(arg);
+                    Environment.Exit(2);
+                } else {
+                    ParseNonOption(arg);
+                }
             } else {
-                ParseNonOptions(args.AsSpan().Slice(i));
+                ParseNonOption(arg);
             }
         }
     }
@@ -66,16 +68,13 @@ https://github.com/kjpgit/vilark/
         System.Console.WriteLine($"Use -h for help");
     }
 
-    private void ParseNonOptions(ReadOnlySpan<string> args) {
-        if (args.Length > 1) {
+    private void ParseNonOption(string arg) {
+        if (SelectedDirectory != null) {
             System.Console.WriteLine($"Error: only one directory is allowed");
             System.Console.WriteLine($"Use -h for help");
             Environment.Exit(2);
         }
-        if (args.Length == 1) {
-            SelectedDirectory = args[0];
-        }
-        // Otherwise, the default will be '.'
+        SelectedDirectory = arg;
     }
 
 }
