@@ -2,16 +2,15 @@
 
 ## UX Key Bindings
 
-    Escape                    close/exit (without selecting anything)
-    Enter                     confirm selected file/item
+    Escape                     cancel / quit
+    Enter                      confirm selected file or buffer
 
-    Left/Right arrow          change tab
-    Up/Down arrow,            change selection
-      Tab/ShiftTab
-    PageUp/PageDown,          scroll (if scrollbar is indicated)
-      Home/End
+    Left/Right                 change tab
+    Up/Down/Tab/ShiftTab       change selection
+    PageUp/PageDown/Home/End   scroll (if scrollbar is indicated)
 
-    Ctrl-w                    delete previous word (in search box)
+    Ctrl-w                     delete previous word (in search box)
+
 
 
 ## File Handling
