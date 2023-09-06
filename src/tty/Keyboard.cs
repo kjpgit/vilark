@@ -45,7 +45,7 @@ enum KeyboardModifier {
 }
 */
 
-struct KeyPress()
+struct KeyPress
 {
     // Init-only properties (can't be changed)
     public KeyCode? keyCode     {get; init; }
