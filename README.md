@@ -46,6 +46,10 @@ Mac OS is not currently supported, simply because I don't have access to a Mac
 for testing.  It needs ~50 lines of code to P/Invoke libSystem, for tty
 handling.
 
+## Additional Documentation
+
+[User Manual](doc/README.md)
+
 ## About ViLark
 
 Lark (noun) : A source of or quest for amusement or adventure
