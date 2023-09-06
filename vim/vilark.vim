@@ -3,41 +3,17 @@ python3 << __python_vimcode_end__
 #
 # ViLark vim integration plugin.  (2023) Karl Pickett / ViLark project
 #
-# [[ Key Bindings ]]
 #
-# This file creates (2) normal-mode key bindings by default.
-#
-#   <space>e    ->  Pick a file to open. ESC cancels.
-#
-#   <space>b    ->  Pick a buffer to switch to. ESC cancels.
-#
-# Search below for 'nnoremap' if you want to customize.
+# This plugin does not create any default key bindings.
+# You must add them in your ~/.vimrc, according to your preferences.  Mine are:
 #
 #
-# [[ Installation ]]
-#
-# You can use this file like any other vimrc snippet.
-#
-# a) Copy and paste it entirely to your .vimrc
-#
-# b) (or) Add "source ~/.vim/vilark.vimrc" to your .vimrc
+#    nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>"
+#    nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>"
 #
 #
-###################################################################################################
-__python_vimcode_end__
-
-
-" Vim keyboard bindings, feel free to comment these out and
-" customize them in your personal vimrc instead.
-" TODO: A better way to customize these and still get plugin updates
-nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>
-nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>
-
-
-python3 << __python_vimcode_end__
-###################################################################################################
 #
-# [[ Main Script ]]
+#
 #
 ###################################################################################################
 

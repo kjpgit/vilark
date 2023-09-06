@@ -22,11 +22,8 @@ After building, you can completely remove the .Net SDK to free up space.
     git clone --depth 1 https://github.com/kjpgit/vilark
     cd vilark
     ./build.sh
-    ./vilark     # Ensure it runs, press ESC to exit
 
-* To install the vim plugin, see [vilark.vimrc](vim/vilark.vimrc)
-
-* To install the bash plugin, see [vilark.sh](vim/vilark.sh)
+* For a simple bash wrapper function, see [vilark.sh](vim/vilark.sh)
 
 ## Supported Terminals
 
