@@ -1,17 +1,17 @@
 #!/bin/sh
 ###################################################################################################
 #
-# ViLark bash -> vim integration.  (2023) Karl Pickett / ViLark project
+# Simple example of bash -> ViLark -> vim
 #
-# Create a smart 'vi' alias.  Examples:
+# Creates a smart 'vi' alias.  Examples:
 #
 #  'vi'      => Choose a file from current directory ('.') with ViLark, then run vim
 #
-#  'vi /etc' => Choose a file from '/etc' with ViLark, then run vim
+#  'vi /etc' => Choose a file from '/etc/' with ViLark, then run vim
 #
-#  'vi /etc/hosts' => Directly open '/etc/hosts' in vim
+#  'vi /etc/hosts' => Directly open '/etc/hosts' file in vim
 #
-#  'vi /tmp/notfound.txt' => Directly open '/tmp/notfound.txt' in vim
+#  'vi /tmp/notfound.txt' => Directly open '/tmp/notfound.txt' file in vim
 #
 # Notes:
 #
@@ -21,6 +21,7 @@
 # * If more than one file/dir/argument is passed, this script just launches
 #   vim directly.  (Again, it doesn't try to read your mind.)
 #
+# (C) 2023 Karl Pickett / ViLark project
 #
 ###################################################################################################
 
@@ -36,15 +37,18 @@ function vi() {
 
   if [ $arg_count = 0 ]; then
     # Browse current directory with ViLark
-    VILARK_LAUNCH_CMD="$editor" $vilark_cmd .
+    EDITOR="$editor" $vilark_cmd .
   elif [ $arg_count = 1 ]; then
     # User selected one specific thing, see how to handle it.
     if [ -f "$1" ]; then
       # Directly open existing file
       $editor "$1"
     elif [ -d "$1" ]; then
-      # Browse existing directory with ViLark
-      VILARK_LAUNCH_CMD="$editor" $vilark_cmd "$1"
+      # Browse existing directory with ViLark.
+      # You probably want vim & vilark to cd and stay in this directory,
+      # but if you don't, comment this line out and use the next line instead.
+      (cd "$1" && EDITOR="$editor" $vilark_cmd .)
+      #EDITOR="$editor" $vilark_cmd "$1"
     else
       # User selected a non-existing file, or we can't categorize it,
       # open/create it directly
