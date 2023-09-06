@@ -1,4 +1,4 @@
-# Vilark User Documentation
+# ViLark User Documentation
 
 ## UX Key Bindings
 
@@ -12,14 +12,24 @@
     Ctrl-w                     delete previous word (in search box)
 
 
-
 ## File Handling
 
-* $EDITOR is used to open files
+* `.gitignore` files are checked at every level
 
-* .gitignore files are checked at every level
+* `$VILARK_IGNORE_FILE` holds additional ignore patterns (Default: `~/.config/vilark/ignore_rules.txt`)
 
-* $VILARK_IGNORE_FILE holds additional ignore patterns (Default: ~/.config/vilark/ignore_rules.txt)
+* If you launch vilark from the shell (not the vim plugin), `$EDITOR` is used to open files
+
+
+## Searching
+
+### Case Sensitivity
+
+ViLark uses "smart" case sensitivity, on a word-by-word basis.
+
+If you search for "Model foo", the phrase "Model" must appear in the path
+(case-sensitive), and "foo", "Foo", or "FOO", etc. must appear in the path
+(case-insensitive).
 
 
 ## Options Tab
@@ -28,17 +38,17 @@
 
 If you search for "mo sc", ViLark searches each path for "mo" and "sc".
 
-If you use "Match exact order", the "sc" must match after "mo" in the path.
+* If you use "Match exact order", the "sc" must match after "mo" in the path.
 
-If you use "Match any order", both "sc" and "mo" can match anywhere in the path.
+* If you use "Match any order", both "sc" and "mo" can match anywhere in the path.
 
 Example, if you search for "mo sc":
 
-* "Models\\MyScrollView.cs" will always match, because "sc" in Scroll comes
+* `Models/MyScrollItem.cs` will always match, because "sc" in Scroll comes
   after "mo" in "Model".
 
 If you have "Match any order" selected:
 
-* "ScrollModel.cs" will also match, because "sc" in "Scroll" doesn't have to
-  come after "Model".
+* `ScrollMotion.cs` will also match, because "sc" in "Scroll" doesn't have to
+  come after "mo" in "Motion".
 
