@@ -42,9 +42,9 @@ characters and/or they have incorrect widths.  Please use a better font.
 
 ## Apple Support
 
-Mac OS is not currently supported, simply because I don't have access to a Mac
-for testing.  It needs ~50 lines of code to P/Invoke libSystem, for tty
-handling.
+There is preliminary Mac OS support in the `karl/mac-support` branch.
+I still need to test it, unfortunately I don't have easy access to macs.
+Any testing help is greatly appreciated.
 
 ## Additional Documentation
 
