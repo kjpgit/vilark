@@ -47,47 +47,43 @@ class Controller
     }
 
     public void Run(string[] args) {
-        console.SetRawMode(true);
         console.SetAlternateScreen(true);
         if (Environment.GetEnvironmentVariable("VILARK_NOCLEAR") == null) {
             console.ClearScreen();
-        } else {
-            //throw new Exception("hi");
         }
         console.Flush();
-
-        Action cleanupTerminal = () => {
-            // fixme set normal font
-            console.SetCursorVisible(true);
-            console.SetUnderline(false);
-            console.SetForegroundColor(null);
-            console.SetBackgroundColor(null);
-            console.SetAlternateScreen(false);
-            console.SetRawMode(false);
-            console.Flush();
-        };
 
         try {
             m_input_model.LoadInput(m_options_model);
             UpdateSearchModel();
 
-            console.UpdateDimensions();
             PrepareViews();
             RunUntilExit();
             Log.Info("Clean exit");
 
-            cleanupTerminal();
-            m_output_model.WriteOutput(m_chosen_item);
+            CleanupTerminal();
             m_config.SaveSettings();
+
+            // This writes a tmp file, or execs a process
+            m_output_model.WriteOutput(m_chosen_item);
             Environment.Exit(0);
         } catch (Exception e) {
             var edi = ExceptionDispatchInfo.Capture(e);
             Log.Info("Unclean exit");
             Log.Exception(e);
-            cleanupTerminal();
+            CleanupTerminal();
             edi.Throw();
             //Environment.Exit(1);
         }
+    }
+
+    private void CleanupTerminal() {
+        console.SetCursorVisible(true);
+        console.SetUnderline(false);
+        console.SetForegroundColor(null);
+        console.SetBackgroundColor(null);
+        console.SetAlternateScreen(false);
+        console.Flush();
     }
 
     private void PrepareViews() {
@@ -113,9 +109,19 @@ class Controller
                     return;
                 }
             }
-            if (evt.signal == PosixSignal.SIGWINCH) {
-                console.UpdateDimensions();
+            if (evt.signal == PosixSignal.SIGWINCH || evt.signal == PosixSignal.SIGCONT) {
+                console.SetAlternateScreen(true);
                 Redraw();
+            }
+            if (evt.signal == PosixSignal.SIGINT) {
+                Log.Info("moving back to main terminal screen (SIGINT)");
+                CleanupTerminal();
+                Environment.Exit(3);
+            }
+            if (evt.signal == PosixSignal.SIGTSTP) {
+                Log.Info("moving back to main terminal screen (SIGTSTP)");
+                CleanupTerminal();
+                UnixProcess.SelfSigStop();
             }
             if (evt.signal == PosixSignal.SIGTERM) {
                 return;

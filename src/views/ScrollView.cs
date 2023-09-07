@@ -97,7 +97,7 @@ class ScrollView: IView
                 var displayText = new DisplayText(visible_lines[i].GetDisplayString(),
                         maxColumns:maxTextWidth,
                         autoFit: true);
-                Log.Info($"maxTextWidth {maxTextWidth}, {displayText.Columns}");
+                //Log.Info($"maxTextWidth {maxTextWidth}, {displayText.Columns}");
                 console.Write(displayText);
                 line_len += displayText.Columns;
 

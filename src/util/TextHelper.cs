@@ -4,6 +4,7 @@ namespace vilark;
 
 class TextHelper
 {
+    /*
     public static string HumanEscapeBytes(ReadOnlySpan<byte> bytes) {
         var sb = new StringBuilder();
         for (var i = 0; i < bytes.Length; i++) {
@@ -22,9 +23,16 @@ class TextHelper
             return String.Format("\\x{0:X2}", val);
         }
     }
+    */
+    public static string HumanEscapeChar(char c) {
+        return HumanEscapeCodePoint((int)c);
+    }
 
     public static string HumanEscapeRune(Rune r) {
-        int val = r.Value;
+        return HumanEscapeCodePoint(r.Value);
+    }
+
+    private static string HumanEscapeCodePoint(int val) {
         if (val == '\\') {
             return "\\\\";
         } else if (val >= 33 && val <= 126) {

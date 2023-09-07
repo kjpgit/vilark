@@ -5,7 +5,8 @@ run:
 	../artifacts/bin/program/debug/vilark || bash -c 'sleep 2; reset'
 
 runt:
-	strace -o tt ../artifacts/bin/program/debug/vilark
+	#strace -e abbrev=none -f -o tt -e ioctl ../artifacts/bin/program/debug/vilark
+	strace -f -o tt ../artifacts/bin/program/debug/vilark
 
 stats:
 	sloccount .
