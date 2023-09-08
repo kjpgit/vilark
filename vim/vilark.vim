@@ -41,7 +41,9 @@ def ViLark_BrowseCurrentDirectory():
         vim.command("redraw!")
         chosen_file = open(tmp.name).read()
         if chosen_file:
-            print(f"ViLark: Selected file is {chosen_file}")
+            # Be cautious about printing, because a long file name (2+ lines)
+            # causes vim to show a 'press enter to continue' blurb.
+            #print(f"ViLark: Selected file is {chosen_file}")
             vim.command(f"ViLarkSafeEdit {chosen_file}")
         else:
             print("ViLark: Select was canceled")
@@ -67,7 +69,7 @@ def ViLark_BrowseCurrentBuffers():
         chosen_buffer_line = open(tmp_output.name).read()
         if chosen_buffer_line:
             chosen_buffer_num = chosen_buffer_line.strip().split(' ')[0]
-            print(f"ViLark: Selected buffer is ({chosen_buffer_num})")
+            #print(f"ViLark: Selected buffer is ({chosen_buffer_num})")
             vim.command(f"buffer {chosen_buffer_num}")
         else:
             print("ViLark: Select was canceled")
