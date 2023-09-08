@@ -14,7 +14,6 @@ stats:
 publish:
 	dotnet publish
 	cp ../artifacts/publish/program/release/vilark ../artifacts
-	cp ../artifacts/publish/program/release/vilark ~/.local/bin
 
 record:
 	terminalizer record /tmp/d2 -k
