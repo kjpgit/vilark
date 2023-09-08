@@ -7,6 +7,22 @@ Thread and process diagram:
 Developers who are interested in creating a C# terminal app (including
 WSL2/Windows Terminal) might find this project useful as a starting point.
 
+## Special Keys
+
+See https://devblogs.microsoft.com/dotnet/console-readkey-improvements-in-net-7/
+
+* (4) CTRL-C -> SIGINT
+
+* (8) CTRL-H -> CTRL+BACKSPACE
+* (0xa) CTRL-J -> CTRL+ENTER
+* (0xd) CTRL-M -> CTRL+ENTER
+* (0x1B) CTRL-[ and CTRL-3 -> ESCAPE
+
+* CTRL-Q/CTRL-S are thankfully not appearing to stop the terminal (XOFF)
+
+* CTRL-\ -> We get SIGQUIT, annoying but we override the signal
+
+* CTRL-Z -> We get SIGTSTP (terminal stop), which we could override
 
 ## .Net / C# Annoyances
 

@@ -37,10 +37,6 @@ readonly record struct DrawRect(int x, int y, int width, int height)
         return new ScrollInfo(scrollIndStartY, scrollIndHeight);
     }
 
-    public static DrawRect Empty() {
-        return new DrawRect();
-    }
-
 }
 
 class DrawContext

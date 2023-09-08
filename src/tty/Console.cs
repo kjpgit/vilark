@@ -1,8 +1,6 @@
 //
 // Console IO abstraction
 //
-using Linux = Tmds.Linux;
-using Libc = Tmds.Linux.LibC;
 using System.Buffers.Text; // For Utf8Formatter
 
 namespace vilark;
@@ -18,21 +16,14 @@ readonly record struct ConsoleDimensions(int rows, int cols);
 
 class Console
 {
-    private Linux.termios original_termios;
-    private ConsoleDimensions current_dimensions;
-
     // ANSI Erase in Display
     public void ClearScreen() {
         Write("\x1b[2J"u8);
     }
 
-    /*
-    // ANSI Erase In Line
-    // Don't use, it can flicker
-    public void ClearAfterCursor() {
-        Write("\x1b[K"u8);
+    public void ResetTextAttrs() {
+        Write("\x1b[0m"u8);
     }
-    */
 
     public void SetUnderline(bool enabled) {
         if (enabled) {
@@ -42,32 +33,24 @@ class Console
         }
     }
 
-    public void SetBackgroundColor(ColorRGB? color) {
-        if (color != null) {
-            Write("\x1b[48;2;"u8);
-            WriteIntAsText(color.r);
-            Write(";"u8);
-            WriteIntAsText(color.g);
-            Write(";"u8);
-            WriteIntAsText(color.b);
-            Write("m"u8);
-        } else {
-            Write("\x1b[49m"u8);
-        }
+    public void SetBackgroundColor(ColorRGB color) {
+        Write("\x1b[48;2;"u8);
+        WriteIntAsText(color.r);
+        Write(";"u8);
+        WriteIntAsText(color.g);
+        Write(";"u8);
+        WriteIntAsText(color.b);
+        Write("m"u8);
     }
 
-    public void SetForegroundColor(ColorRGB? color) {
-        if (color != null) {
-            Write("\x1b[38;2;"u8);
-            WriteIntAsText(color.r);
-            Write(";"u8);
-            WriteIntAsText(color.g);
-            Write(";"u8);
-            WriteIntAsText(color.b);
-            Write("m"u8);
-        } else {
-            Write("\x1b[39m"u8);
-        }
+    public void SetForegroundColor(ColorRGB color) {
+        Write("\x1b[38;2;"u8);
+        WriteIntAsText(color.r);
+        Write(";"u8);
+        WriteIntAsText(color.g);
+        Write(";"u8);
+        WriteIntAsText(color.b);
+        Write("m"u8);
     }
 
     public void SetCursorVisible(bool enabled) {
@@ -78,38 +61,10 @@ class Console
         Write(enabled ? "\x1b[?1049h"u8 : "\x1b[?1049l"u8);
     }
 
-    // Same as what `tput cols`, `tput lines` returns
+    // C# appears to call TIOCGWINSZ() automatically, good.
+    // https://github.com/dotnet/runtime/blob/main/src/native/libs/System.Native/pal_console.c#L27
     public ConsoleDimensions GetDimensions() {
-        return current_dimensions;
-    }
-
-    unsafe public void UpdateDimensions() {
-        Linux.winsize argWinsize;
-        Libc.ioctl(2, Libc.TIOCGWINSZ, &argWinsize);
-        current_dimensions = new ConsoleDimensions { rows=argWinsize.ws_row, cols=argWinsize.ws_col };
-    }
-
-    unsafe public void SetRawMode(bool enabled) {
-        if (enabled) {
-            Linux.termios t;
-            Libc.tcgetattr(0, &t);
-            original_termios = t;
-
-            t.c_oflag &= ~(Libc.OPOST); // Don't add cr on output
-            t.c_iflag &= ~(Libc.IXON);  // Disable Ctrl-S & Ctrl-Q
-            t.c_iflag &= ~(Libc.IEXTEN);  // Disable Ctrl-V
-            t.c_iflag &= ~(Libc.ICRNL);  // Fix Ctrl-M (Don't convert cr to nl on input)
-            t.c_lflag &= ~(Libc.ECHO | Libc.ICANON); // No echo, No line mode
-            t.c_cc[Libc.VINTR] = 0;  // Don't generate SIGINT, read() it as ctrl-c instead
-            t.c_cc[Libc.VQUIT] = 0;  // Don't generate SIGQUIT, read() it as ctrl-\ instead
-            t.c_cc[Libc.VSUSP] = 0;  // Don't generate SIGQUIT, read() it as ctrl-\ instead
-            t.c_cc[Libc.VMIN] = 0;
-            t.c_cc[Libc.VTIME] = 1; // Wait 1/10 of a second before returning empty read()
-            Libc.tcsetattr(0, (int)Libc.TCSAFLUSH, &t);
-        } else {
-            Linux.termios t = original_termios;
-            Libc.tcsetattr(0, (int)Libc.TCSAFLUSH, &t);
-        }
+        return new ConsoleDimensions(System.Console.WindowHeight, System.Console.WindowWidth);
     }
 
     public void SetCursorXY(int x, int y, DrawRect rect) {
@@ -145,8 +100,7 @@ class Console
         if (text.bgColor != null) { SetBackgroundColor(text.bgColor); }
         if (text.fgColor != null) { SetForegroundColor(text.fgColor); }
         Write(System.Text.Encoding.UTF8.GetBytes(text.NormalizedText));
-        if (text.bgColor != null) { SetBackgroundColor(null); }
-        if (text.fgColor != null) { SetForegroundColor(null); }
+        if (text.bgColor != null || text.fgColor != null) { ResetTextAttrs(); }
     }
 
     public void Write(ReadOnlySpan<byte> bytes) {
@@ -165,6 +119,8 @@ class Console
 
 class ConsoleBufferedWriter
 {
+    private Stream _os = System.Console.OpenStandardOutput();
+
     public void Write(ReadOnlySpan<byte> bytes) {
         if (GetCurrentCapacity() >= bytes.Length) {
             // Fast path, append to current buffer
@@ -194,10 +150,8 @@ class ConsoleBufferedWriter
         _length += bytes.Length;
     }
 
-    unsafe private void _write(ReadOnlySpan<byte> bytes) {
-        fixed (byte* bp = bytes) {
-            Libc.write(2, bp, bytes.Length);
-        }
+    private void _write(ReadOnlySpan<byte> bytes) {
+        _os.Write(bytes);
     }
 
     public int GetLength() { return _length; }

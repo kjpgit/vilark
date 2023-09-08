@@ -28,7 +28,7 @@ class OutputModel
             Log.Info($"Launching EDITOR {launchCmd} {s}");
             string shortName = Path.GetFileName(launchCmd);
             string[] args = { shortName, s };
-            LinuxProcess.Exec(launchCmd, args, LinuxProcess.GetCurrentEnvs());
+            UnixProcess.Exec(launchCmd, args, UnixProcess.GetCurrentEnvs());
         }
     }
 }

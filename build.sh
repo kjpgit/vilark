@@ -7,7 +7,22 @@ set -eu
 set -o pipefail
 cd `dirname $0`
 
-DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/32f2c846-5581-4638-a428-5891dd76f630/ee8beef066f06c57998058c5af6df222/dotnet-sdk-8.0.100-preview.7.23376.3-linux-x64.tar.gz
+# Build automatically on Linux/x64, Mac/x64, and Mac/ARM
+# Note that Linux/ARM is also supported in theory, but you need to download that SDK manually.
+echo "Machine Information: $OSTYPE - $HOSTTYPE"
+if [[ "$OSTYPE" = darwin* ]] ; then
+  if [[ $HOSTTYPE = arm64 ]] || [[ $HOSTTYPE = aarch64 ]]; then
+    echo "Building for Mac OS + ARM"
+    DOTNET_URL="https://download.visualstudio.microsoft.com/download/pr/63ee7355-c179-4684-9187-afb3acaed7b2/f2a5414c6b0189f57555d03ce73413a2/dotnet-sdk-8.0.100-preview.7.23376.3-osx-arm64.tar.gz"
+  else
+    echo "Building for Mac OS + x86_64"
+    DOTNET_URL="https://download.visualstudio.microsoft.com/download/pr/2206f0d7-f812-408f-bed7-ed9bd043768f/ca7eb1331ee61fdd684c27638fdc6a90/dotnet-sdk-8.0.100-preview.7.23376.3-osx-x64.tar.gz"
+  fi
+else
+  echo "Building for Linux + x86_64.  Did not detect Mac OS."
+  DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/32f2c846-5581-4638-a428-5891dd76f630/ee8beef066f06c57998058c5af6df222/dotnet-sdk-8.0.100-preview.7.23376.3-linux-x64.tar.gz
+fi
+
 
 INSTALL_DIR=~/.local/bin
 VIM_INSTALL_DIR=~/.vim/plugin/vilark
@@ -46,7 +61,7 @@ RC=0
 VERSION=`vilark --version` || RC=$?
 if [ $RC != 0 ]; then
   echo
-  echo "⚠ Warning: 'vilark --version' failed to execute."
+  echo "⛔ Warning: 'vilark --version' failed to execute."
   echo "The vim plugin needs vilark in your PATH, or run this:"
   echo "     export VILARK=/path/to/vilark"
   echo
