@@ -67,14 +67,15 @@ class UnixProcess
         wrapperEnvs.Add($"VILARK_EXEC_ARG1={args[1]}");
 
         string wrapperCommand = GetExecFullPath("sh") ?? throw new Exception("can't find sh in path");
+        string ttyResetCmd = Environment.GetEnvironmentVariable("VILARK_TTY_RESET") ?? "stty sane";
         string[] wrapperArgs = new string[] {
             "sh",
             "-c",
-            "stty sane ; exec \"$VILARK_EXEC_PROG\" \"$VILARK_EXEC_ARG1\"",
+            $"{ttyResetCmd} ; exec \"$VILARK_EXEC_PROG\" \"$VILARK_EXEC_ARG1\"",
         };
 
         // This should not return...
-        Log.Info($"Calling NativeExecve");
+        Log.Info($"Calling NativeExecve, ttyResetCmd={ttyResetCmd}");
         Posix.NativeExecve(wrapperCommand, wrapperArgs, wrapperEnvs.ToArray());
         //Posix.NativeExecve(fullPath, args, envs);
         throw new Exception("Error: native execve failed for {fullPath}");
