@@ -13,12 +13,13 @@ The file selector for humans. 😀
 
 ## Installation Instructions
 
-Installing on Linux or WSL2 is very easy.  The `build.sh` script will automatically
+Installing on Linux, Mac, or WSL2 is very easy.  The `build.sh` script will automatically
 download the .Net 8 SDK to compile ViLark to a single-file executable with
 native code (GC, but no JIT).
 
 After building, you can completely remove the .Net SDK to free up space.
 
+    cd /tmp
     git clone --depth 1 https://github.com/kjpgit/vilark
     cd vilark
     ./build.sh
@@ -27,24 +28,25 @@ After building, you can completely remove the .Net SDK to free up space.
 
 ## Supported Terminals
 
+![iTerm2 Screenshot](doc/videos/macos-iterm.png)
+
 A modern terminal emulator (24 bit color, xterm key sequences) is required.  ViLark is tested on:
 
 * [Chrome Secure Shell (aka hterm)](https://chrome.google.com/webstore/detail/secure-shell/iodihamcpbpeioajjeobimgagajmlibd)
 
 * [Windows Terminal (typically used with WSL2)](https://apps.microsoft.com/store/detail/windows-terminal/9N0DX20HK701?hl=en-us&gl=us&rtc=1)
 
+* [iTerm2](https://iterm2.com/)
+
 * Linux console, xterm, lxterminal, gnome-terminal
 
 NOTE: The Google Roboto Mono font is buggy
 [(bug)](https://github.com/google/fonts/issues/360)
 and is missing certain box drawing
-characters and/or they have incorrect widths.  Please use a better font.
+characters and/or they have incorrect widths.
 
-## Apple Support
-
-There is preliminary Mac OS support in the `karl/mac-support` branch.
-I still need to test it, unfortunately I don't have easy access to macs.
-Any testing help is greatly appreciated.
+NOTE: Apple's Terminal.App and rxvt do not support 24 bit color codes,
+their so usage is not recommended.
 
 ## Additional Documentation
 
