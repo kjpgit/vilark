@@ -32,15 +32,19 @@ class ViLarkMain
         // Options look ok, start up the UX
         var console = new vilark.Console();
         var keyboard = new Keyboard();
-        var inputQueue = new InputQueue();
-        var controller = new Controller(console, inputQueue, optionsModel);
+        var keyboardEvent = new InputEvent<KeyPress>();
+        var signalEvent = new InputEvent<PosixSignal>();
+        var controller = new Controller(console, keyboardEvent, signalEvent, optionsModel);
 
-        // Important signals go to the inputQueue
+        // Synchronization is important here.. one signal at a time is processed by main thread,
+        // and we wait until it is done before returning to the runtime.
         var captureSignal = (PosixSignalContext context, bool cancel) => {
-            Log.Info($"Got signal: {context.Signal}");
-            var evt = new InputEvent { signal = context.Signal };
-            inputQueue.AddEvent(evt);
+            Log.Info($"Signal start: {context.Signal}");
+            signalEvent.ProducerWaitHandle.WaitOne();
+            signalEvent.AddEvent(context.Signal);
+            controller.SignalProcessingDone.WaitOne();
             context.Cancel = cancel;
+            Log.Info($"Signal end: {context.Signal}");
         };
 
         UnixProcess.RegisterSignalHandler(PosixSignal.SIGWINCH, (context) => captureSignal(context, false));
@@ -80,9 +84,9 @@ class ViLarkMain
 
         // Keyboard input -> inputQueue
         var consoleReadThread = new Thread(() => {
+                keyboardEvent.ProducerWaitHandle.WaitOne();
                 foreach (KeyPress kp in keyboard.GetKeyPress()) {
-                    var evt = new InputEvent { keyPress = kp };
-                    inputQueue.AddEvent(evt);
+                    keyboardEvent.AddEventAndWait(kp);
                 }
             });
         consoleReadThread.Name = "consoleReadThread";

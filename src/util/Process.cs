@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 namespace vilark;
 
-
 /*
  * When launching a child process, these things need to be considered:
  *
@@ -12,8 +11,10 @@ namespace vilark;
  *    the convention is that each process leaves the terminal as it was when they started.
  *    Whatever we leave it at, is what the next process will leave it at, by default.
  *
+ *    Note the vim docs:  "When Vim exits, the terminal will be put back into
+ *    the mode it was before Vim started."
+ *
  * 2. Resetting all terminal colors/underlining back to the default, and enabling the cursor.
- *    Note that 1) and 2) can be done easily just by write()ing escape codes to /dev/tty.
  *
  * 3. Setting the mode of /dev/tty back to cooked/echo, or at least how it was when you started.
  *    This needs an ioctl(), sadly.  Or, you hack it and run 'tput init' in a subprocess.
@@ -23,6 +24,16 @@ namespace vilark;
  *
  * 5. Making sure nothing else is still reading from /dev/tty.  Again, execve() does this for you,
  *    because all threads are terminated.  The .NET ReadKey() API is awkward to cancel otherwise.
+ *
+ * Note that 1) and 2) can be done easily just by write()ing escape codes to /dev/tty.
+ *
+ * After trying a lot of failed experiments, the most robust solution for 3-5 is to
+ * execve() a wrapper shell command that calls "tput init" and "exec $target_process"
+ * in one shot.  Note that calling them separately was not always working, perhaps because
+ * some .NET Console code was being triggered by child processes starting/exiting.
+ *
+ * This seems to prevent the .NET Console from * messing with any tty settings.
+ * It's annoying to have to depend on sh and tput for this, however.
  *
  */
 
@@ -36,39 +47,37 @@ class UnixProcess
         _signal_registrations.Add(registration);
     }
 
-    static private void UnregisterSignals() {
-        foreach (var registration in _signal_registrations) {
-            registration.Dispose();
-        }
-        _signal_registrations.Clear();
-    }
-
     // Replace this process with a different process.
-    // Gracefully handle cleanup tasks 3) and 4) listed at the top of this file.
+    // Gracefully handle cleanup tasks 3-5 listed at the top of this file.
     // The caller must have already done 1) and 2).
     static public void Exec(string program, string[] args, string[] envs) {
         string? fullPath = null;
         if (program.IndexOf('/') == -1) {
-            fullPath = GetExecFullPath(program);
-            if (fullPath == null) {
-                throw new Exception($"Can't find {program} in $PATH");
-            }
+            fullPath = GetExecFullPath(program) ?? throw new Exception($"Can't find {program} in $PATH");
         } else {
             fullPath = program;
         }
-
         Log.Info($"Full path: {program} -> {fullPath}");
 
-        // "When Vim exits the terminal will be put back into the mode it was
-        // before Vim started."
-        RunTerminalReset();
+        var wrapperEnvs = new List<string>(envs);
+        wrapperEnvs.Add($"VILARK_EXEC_PROG={fullPath}");
+        wrapperEnvs.Add($"VILARK_EXEC_ARG1={args[1]}");
+
+        string wrapperCommand = GetExecFullPath("sh") ?? throw new Exception("can't find sh in path");
+        string[] wrapperArgs = new string[] {
+            "sh",
+            "-c",
+            "tput init; exec \"$VILARK_EXEC_PROG\" \"$VILARK_EXEC_ARG1\"",
+        };
 
         // This should not return...
-        Posix.NativeExecve(fullPath, args, envs);
-
+        Log.Info($"Calling NativeExecve");
+        Posix.NativeExecve(wrapperCommand, wrapperArgs, wrapperEnvs.ToArray());
+        //Posix.NativeExecve(fullPath, args, envs);
         throw new Exception("Error: native execve failed for {fullPath}");
     }
 
+    /*
     static public void ExecManaged(string program, string[] args, string[] envs) {
         UnregisterSignals();
         RunTerminalReset();
@@ -85,6 +94,14 @@ class UnixProcess
             Log.Info("exec process didn't start");
         }
     }
+
+    static private void UnregisterSignals() {
+        foreach (var registration in _signal_registrations) {
+            registration.Dispose();
+        }
+        _signal_registrations.Clear();
+    }
+    */
 
     public static string[] GetCurrentEnvs() {
         List<string> ret = new();
@@ -109,18 +126,20 @@ class UnixProcess
     }
 
     public static void SelfSigStop() {
-        var pi = new ProcessStartInfo("sh");
-        pi.ArgumentList.Add("-c");
-        pi.ArgumentList.Add("kill -STOP $PPID");
+        Log.Info($"SelfSigStop: my pid is {Environment.ProcessId}");
+        var pi = new ProcessStartInfo("kill");
+        pi.ArgumentList.Add("-STOP");
+        pi.ArgumentList.Add($"{Environment.ProcessId}");
         var p = Process.Start(pi);
         if (p != null) {
             p.WaitForExit();
-            Log.Info($"stop helper finished: {p.ExitCode}");
+            Log.Info($"stop helper finished: pid={p.Id} rc={p.ExitCode}");
         } else {
             Log.Info("stop helper didn't start");
         }
     }
 
+    /*
     private static void RunTerminalReset() {
         // Hack: Set our tty back to normal/cooked mode, right before execve()
         // 'reset' also clears the screen, so it isn't great for ctrl-z/ctrl-c handling.
@@ -141,4 +160,5 @@ class UnixProcess
             Log.Info("warning: tput didn't start");
         }
     }
+    */
 }

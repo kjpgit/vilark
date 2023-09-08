@@ -11,18 +11,20 @@ namespace vilark;
 
 class Posix
 {
-    static public int NativeExecve(string path, string[] args, string[] envs)
+    static public unsafe int NativeExecve(string path, string[] args, string[] envs)
     {
-        unsafe {
+        // Put args and envs on the heap
+        byte[] args_data = new byte[_get_cstr_array_length_utf8(args)];
+        byte[] envs_data = new byte[_get_cstr_array_length_utf8(envs)];
+
+        fixed (byte *args_data_p = &args_data[0], envs_data_p = &envs_data[0]) {
             byte* path_ptr = stackalloc byte[Encoding.UTF8.GetByteCount(path) + 1];
             _write_c_string_utf8(path, path_ptr);
 
-            byte* args_data = stackalloc byte[_get_cstr_array_length_utf8(args)];
-            byte* envs_data = stackalloc byte[_get_cstr_array_length_utf8(envs)];
             byte** args_ptrs = stackalloc byte*[args.Length + 1];
             byte** envs_ptrs = stackalloc byte*[envs.Length + 1];
-            _build_cstr_array_utf8(args, args_data, args_ptrs);
-            _build_cstr_array_utf8(envs, envs_data, envs_ptrs);
+            _build_cstr_array_utf8(args, args_data_p, args_ptrs);
+            _build_cstr_array_utf8(envs, envs_data_p, envs_ptrs);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                 return LinuxSyscalls.execve(path_ptr, args_ptrs, envs_ptrs);
