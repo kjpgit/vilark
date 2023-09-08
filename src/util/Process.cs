@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace vilark;
 
 /*
- * When launching a child process, these things need to be considered:
+ * When exec'ing a child (replacement) process, these things need to be considered:
  *
  * 1. Putting the terminal back to the 'main' screen.  Even if this is only for a moment,
  *    the convention is that each process leaves the terminal as it was when they started.
@@ -17,7 +17,7 @@ namespace vilark;
  * 2. Resetting all terminal colors/underlining back to the default, and enabling the cursor.
  *
  * 3. Setting the mode of /dev/tty back to cooked/echo, or at least how it was when you started.
- *    This needs an ioctl(), sadly.  Or, you hack it and run 'tput init' in a subprocess.
+ *    This needs an ioctl(), sadly.  Or, you hack it and run 'stty sane' in a subprocess.
  *
  * 4. Restoring signal masks to the default.  execve() does this for you, otherwise
  *    if you are using .NET Process.Start(), you should unregister your signal handlers first.
@@ -28,12 +28,15 @@ namespace vilark;
  * Note that 1) and 2) can be done easily just by write()ing escape codes to /dev/tty.
  *
  * After trying a lot of failed experiments, the most robust solution for 3-5 is to
- * execve() a wrapper shell command that calls "tput init" and "exec $target_command"
+ * execve() a wrapper shell command that calls "stty sane" and "exec $target_command"
  * in one shot.  Note that calling them separately was not always working, perhaps because
  * some .NET Console code was being triggered by child processes starting/exiting.
  *
- * This seems to prevent the .NET Console from * messing with any tty settings.
- * It's annoying to have to depend on sh and tput for this, however.
+ * The above wrapper command has been tested on Linux and Mac OS 13 (ARM).
+ * It's annoying to have to depend on sh and stty for this, however.
+ *
+ * Note that `stty -g` might work, if you capture it before .Net Console changes anything.
+ * I think 'stty sane' will be more robust and predictable.
  *
  */
 
