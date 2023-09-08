@@ -48,6 +48,11 @@ characters and/or they have incorrect widths.
 NOTE: Apple's Terminal.App and rxvt do not support 24 bit color codes,
 their so usage is not recommended.
 
+## Vim Requirements (For Vim Plugin)
+
+Vim needs to be compiled with `+python3` scripting support.  This is the default
+for Ubuntu, as well as Brew on mac.  (Don't use the default `/usr/bin/vim` on Mac)
+
 ## Additional Documentation
 
 [User Manual](doc/README.md)
