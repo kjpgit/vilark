@@ -31,11 +31,24 @@ class ScrollView: IView
 
     // Called when the user moves the cursor (arrows / tab)
     public void MoveCursorUpDown(int yDelta) {
-        // Try to scroll page instead, if we are already at the top/bottom.
+        // If we are already at the top/bottom, we can scroll or wrap around.
         if (yDelta < 0 && lineCursor == 0) {
-            Scroll(-1);
-        } else if (yDelta > 0 && lineCursor == Size.height-1) {
-            Scroll(1);
+            if (lineScroll == 0) {
+                // Can't scroll up anymore, wrap around to bottom
+                lineCursor = Size.height + 999;  // this will be corrected by ClampScroll
+                lineScroll = content_lines.Count() + 999; // this will be corrected by ClampScroll
+                ClampScroll();
+            } else {
+                Scroll(-1);
+            }
+        } else if (yDelta > 0 && lineCursor == MaxCursorOffset) {
+            if (lineScroll == MaxLineScrollOffset) {
+                // Can't scroll down any more, wrap around to top
+                lineCursor = 0;
+                lineScroll = 0;
+            } else {
+                Scroll(1);
+            }
         } else {
             lineCursor += yDelta;
             ClampScroll();
@@ -130,16 +143,26 @@ class ScrollView: IView
     // Ensure we aren't scrolled out of bounds (top or bottom)
     // Both scrolling and filtering / limiting results can need this
     private void ClampScroll() {
-        int maxScrollOffset = Math.Max(content_lines.Count() - Size.height, 0);
-        lineScroll = Math.Clamp(lineScroll, 0, maxScrollOffset);
+        lineScroll = Math.Clamp(lineScroll, 0, MaxLineScrollOffset);
 
         // Update cursor too
-        int maxCursorOffset = Math.Min(
-                    Math.Max(content_lines.Count() - lineScroll - 1, 0), // Data remaining
+        lineCursor = Math.Clamp(lineCursor, 0, MaxCursorOffset);
+    }
+
+    // If there are 10 lines and the window height is 6, the max lines we can shift up is 4
+    private int MaxLineScrollOffset => Math.Max(content_lines.Count() - Size.height, 0);
+
+    // (10 total lines - 2 shifted up) = 8
+    // 8-1 is 7, meaning the cursor can move forward 7 from the first row.
+    //
+    // (10 total lines - 9 shifted up) = 1
+    // 1-1 is 0, meaning the cursor can move forward 0 more (it's already on the last row)
+    //
+    // 1 total line (all the others filtered out) - 1 = 0, no more following rows to move to
+    private int MaxCursorOffset => Math.Min(
+                    Math.Max(content_lines.Count() - lineScroll - 1, 0), // num lines following
                     Math.Max(Size.height - 1, 0) // Viewport size
                     );
-        lineCursor = Math.Clamp(lineCursor, 0, maxCursorOffset);
-    }
 
 }
 
