@@ -87,8 +87,7 @@ class Controller
     private void CleanupTerminal() {
         console.SetCursorVisible(true);
         console.SetUnderline(false);
-        console.SetForegroundColor(null);
-        console.SetBackgroundColor(null);
+        console.ResetTextAttrs();
         console.SetAlternateScreen(false);
         console.Flush();
     }

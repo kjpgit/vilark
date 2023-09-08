@@ -85,11 +85,11 @@ class ScrollView: IView
 
             if (i < visible_lines.Count) {
                 bool isSelected = (i == lineCursor);
-                ColorRGB? fgColor = isSelected ? m_config.SelectionFGColor : null;
-                ColorRGB? bgColor = isSelected ? m_config.SelectionBGColor : null;
+                if (isSelected) {
+                    console.SetForegroundColor(m_config.SelectionFGColor);
+                    console.SetBackgroundColor(m_config.SelectionBGColor);
+                }
 
-                console.SetForegroundColor(fgColor);
-                console.SetBackgroundColor(bgColor);
                 console.Write(BOX_BLANK);
                 line_len += 1;
 
@@ -104,8 +104,10 @@ class ScrollView: IView
                 console.Write(BOX_BLANK);
                 line_len += 1;
 
-                console.SetForegroundColor(null);
-                console.SetBackgroundColor(null);
+                if (isSelected) {
+                    console.ResetTextAttrs();
+                }
+
             }
 
             int fillWidth = Size.NumRemainingCols(line_len + 1);

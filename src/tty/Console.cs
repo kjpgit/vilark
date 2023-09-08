@@ -21,6 +21,10 @@ class Console
         Write("\x1b[2J"u8);
     }
 
+    public void ResetTextAttrs() {
+        Write("\x1b[0m"u8);
+    }
+
     public void SetUnderline(bool enabled) {
         if (enabled) {
             Write("\x1b[4m"u8);
@@ -29,32 +33,24 @@ class Console
         }
     }
 
-    public void SetBackgroundColor(ColorRGB? color) {
-        if (color != null) {
-            Write("\x1b[48;2;"u8);
-            WriteIntAsText(color.r);
-            Write(";"u8);
-            WriteIntAsText(color.g);
-            Write(";"u8);
-            WriteIntAsText(color.b);
-            Write("m"u8);
-        } else {
-            Write("\x1b[49m"u8);
-        }
+    public void SetBackgroundColor(ColorRGB color) {
+        Write("\x1b[48;2;"u8);
+        WriteIntAsText(color.r);
+        Write(";"u8);
+        WriteIntAsText(color.g);
+        Write(";"u8);
+        WriteIntAsText(color.b);
+        Write("m"u8);
     }
 
-    public void SetForegroundColor(ColorRGB? color) {
-        if (color != null) {
-            Write("\x1b[38;2;"u8);
-            WriteIntAsText(color.r);
-            Write(";"u8);
-            WriteIntAsText(color.g);
-            Write(";"u8);
-            WriteIntAsText(color.b);
-            Write("m"u8);
-        } else {
-            Write("\x1b[39m"u8);
-        }
+    public void SetForegroundColor(ColorRGB color) {
+        Write("\x1b[38;2;"u8);
+        WriteIntAsText(color.r);
+        Write(";"u8);
+        WriteIntAsText(color.g);
+        Write(";"u8);
+        WriteIntAsText(color.b);
+        Write("m"u8);
     }
 
     public void SetCursorVisible(bool enabled) {
@@ -104,8 +100,7 @@ class Console
         if (text.bgColor != null) { SetBackgroundColor(text.bgColor); }
         if (text.fgColor != null) { SetForegroundColor(text.fgColor); }
         Write(System.Text.Encoding.UTF8.GetBytes(text.NormalizedText));
-        if (text.bgColor != null) { SetBackgroundColor(null); }
-        if (text.fgColor != null) { SetForegroundColor(null); }
+        if (text.bgColor != null || text.fgColor != null) { ResetTextAttrs(); }
     }
 
     public void Write(ReadOnlySpan<byte> bytes) {

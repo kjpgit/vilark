@@ -67,7 +67,7 @@ class UnixProcess
         string[] wrapperArgs = new string[] {
             "sh",
             "-c",
-            "tput init; exec \"$VILARK_EXEC_PROG\" \"$VILARK_EXEC_ARG1\"",
+            "stty sane ; exec \"$VILARK_EXEC_PROG\" \"$VILARK_EXEC_ARG1\"",
         };
 
         // This should not return...
