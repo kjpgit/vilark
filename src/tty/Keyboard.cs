@@ -63,7 +63,7 @@ class Keyboard
     public IEnumerable<KeyPress> GetKeyPress() {
         while (true) {
             var cki = System.Console.ReadKey(true);
-            Log.Info($"readkey1 = {TextHelper.HumanEscapeChar(cki.KeyChar)}");
+            Log.Info($"readkey1 = {TextHelper.HumanEscapeChar(cki.KeyChar)} ({GetDebugString(cki)})");
             if (IsSurrogate(cki.KeyChar)) {
                 var cki2 = System.Console.ReadKey(true);
                 Log.Info($"readkey2 = {TextHelper.HumanEscapeChar(cki2.KeyChar)}");
@@ -73,11 +73,6 @@ class Keyboard
                 continue;
             }
 
-            var s = "";
-            if((cki.Modifiers & ConsoleModifiers.Alt) != 0) s +=("ALT+");
-            if((cki.Modifiers & ConsoleModifiers.Shift) != 0) s +=("SHIFT+");
-            if((cki.Modifiers & ConsoleModifiers.Control) != 0) s +=("CTRL+");
-            Log.Info(s + " " + cki.Key.ToString());
             if (cki.KeyChar != (char)0) {
                 yield return cki.KeyChar switch {
                     (char)0x1b => KeyPress.FromKeyCode(ESCAPE),
@@ -105,6 +100,15 @@ class Keyboard
                 yield return KeyPress.FromKeyCode(kc);
             }
         }
+    }
+
+    private string GetDebugString(ConsoleKeyInfo cki) {
+        var s = "";
+        if ((cki.Modifiers & ConsoleModifiers.Alt) != 0) s += "ALT+";
+        if ((cki.Modifiers & ConsoleModifiers.Shift) != 0) s += "SHIFT+";
+        if ((cki.Modifiers & ConsoleModifiers.Control) != 0) s += "CTRL+";
+        s += cki.Key.ToString();
+        return s;
     }
 
     private bool IsSurrogate(char c) {

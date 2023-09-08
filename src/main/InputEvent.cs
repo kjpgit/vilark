@@ -8,6 +8,9 @@ namespace vilark;
  * It turns a synchronous/blocking API (ReadKey) into an async API, where we can
  * use WaitAny() to wait on a single keypress, as well as any other event source.
  *
+ * It also helps with signals, because we can delay the signal handler thread returning
+ * until we are done processing it.
+ *
  */
 
 class InputEvent<T>
@@ -35,12 +38,8 @@ class InputEvent<T>
         return m_event;
     }
 
-    public void RestartProducer() {
-        producerGo.Set();
-    }
-
-    public WaitHandle ConsumerWaitHandle => consumerGo;
-    public WaitHandle ProducerWaitHandle => producerGo;
+    public EventWaitHandle ConsumerWaitHandle => consumerGo;
+    public EventWaitHandle ProducerWaitHandle => producerGo;
 
 }
 

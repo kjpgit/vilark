@@ -28,7 +28,7 @@ namespace vilark;
  * Note that 1) and 2) can be done easily just by write()ing escape codes to /dev/tty.
  *
  * After trying a lot of failed experiments, the most robust solution for 3-5 is to
- * execve() a wrapper shell command that calls "tput init" and "exec $target_process"
+ * execve() a wrapper shell command that calls "tput init" and "exec $target_command"
  * in one shot.  Note that calling them separately was not always working, perhaps because
  * some .NET Console code was being triggered by child processes starting/exiting.
  *
@@ -114,7 +114,7 @@ class UnixProcess
     }
 
     public static string? GetExecFullPath(string program) {
-        string PATH = Environment.GetEnvironmentVariable("PATH")!;
+        string PATH = Environment.GetEnvironmentVariable("PATH") ?? throw new Exception("PATH not set");
         var paths = PATH.Split(":");
         foreach (var path in paths) {
             string fullPath = path + "/" + program;

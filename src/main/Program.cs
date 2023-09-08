@@ -65,24 +65,24 @@ class ViLarkMain
         // 1) Capture and ignore signal = user can't suspend with ctrl-Z
         // 2) Default signal = suspend app but keeps us on application screen (doesn't switch to shell)
         // 3) Capture and switch back to main screen, then send ourselves a SIGSTOP.
-        // We go for 3), and send a SIGSTOP via Mono.Posix.
+        // We go for option 3)
         //
         // Feature request filed: https://github.com/dotnet/runtime/issues/91709
         //
         UnixProcess.RegisterSignalHandler(PosixSignal.SIGTSTP, (context) => captureSignal(context, true));
 
         // CTRL-C
-        // This is also terrible if left at the default, it kills us and leaves us on the app screen.
+        // This is terrible if left at the default, it kills us and leaves us on the app screen.
         // So we catch it, do basic terminal cleanup, and exit.
         //
         // The default action seems to race with our handler (50/50), so we cancel it.
         //
         // I don't know of many full screen apps that do exit on ctrl-c (tig does), but
         // we're just a simple dialog so it's probably fine.
-        UnixProcess.RegisterSignalHandler(PosixSignal.SIGINT, (context) => captureSignal(context, true));
+        UnixProcess.RegisterSignalHandler(PosixSignal.SIGINT, (context) => captureSignal(context, false));
 
 
-        // Keyboard input -> inputQueue
+        // Read from keyboard/tty in a separate thread.
         var consoleReadThread = new Thread(() => {
                 keyboardEvent.ProducerWaitHandle.WaitOne();
                 foreach (KeyPress kp in keyboard.GetKeyPress()) {

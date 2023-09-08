@@ -114,7 +114,7 @@ class Controller
                     return;
                 }
                 // Allow next keypress read
-                keyboardEvent.RestartProducer();
+                keyboardEvent.ProducerWaitHandle.Set();
             } else if (whichReady == 1) {
                 // Posix Signal
                 PosixSignal sig = signalEvent.TakeEvent();
@@ -125,7 +125,7 @@ class Controller
                 // Allow this signal to return
                 SignalProcessingDone.Set();
                 // Allow next signal to be processed
-                signalEvent.RestartProducer();
+                signalEvent.ProducerWaitHandle.Set();
             } else {
                 throw new Exception($"invalid whichReady {whichReady}");
             }
@@ -230,11 +230,12 @@ class Controller
         if (sig == PosixSignal.SIGINT) {
             Log.Info("moving back to main terminal screen (SIGINT)");
             CleanupTerminal();
-            Environment.Exit(3);
         }
         if (sig == PosixSignal.SIGTSTP) {
             Log.Info("moving back to main terminal screen (SIGTSTP)");
             CleanupTerminal();
+            // The default action of SIGTSTP doesn't send a STOP when we capture it.
+            // So send it ourself.
             UnixProcess.SelfSigStop();
         }
         if (sig == PosixSignal.SIGTERM) {

@@ -3,8 +3,11 @@ using System.Runtime.Versioning;
 using System.Text;
 
 /*
- * This provides access to execve() on linux and mac
+ * This provides access to execve() on linux and mac, because:
  *
+ * - Mono.Posix doesn't seem to work with AOT.
+ * - Tmds.Linux is Linux only.
+ * - .NET runtime doesn't expose it for us
  */
 
 namespace vilark;
