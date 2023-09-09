@@ -40,9 +40,7 @@ class ViLarkMain
         // and we wait until it is done before returning to the runtime.
         var captureSignal = (PosixSignalContext context, bool cancel) => {
             Log.Info($"Signal start: {context.Signal}");
-            signalEvent.ProducerWaitHandle.WaitOne();
-            signalEvent.AddEvent(context.Signal);
-            controller.SignalProcessingDone.WaitOne();
+            controller.ExternalSignalInput(context.Signal);
             context.Cancel = cancel;
             Log.Info($"Signal end: {context.Signal}");
         };

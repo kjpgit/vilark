@@ -15,7 +15,7 @@ class Controller
     private InputModel m_input_model;
     private OutputModel m_output_model;
     private OptionsModel m_options_model;
-    public EventWaitHandle SignalProcessingDone = new EventWaitHandle(initialState:false, EventResetMode.AutoReset);
+    private EventWaitHandle m_posixsignal_finished = new EventWaitHandle(initialState:false, EventResetMode.AutoReset);
 
     // Views
     private TitleBar m_titlebar;
@@ -133,9 +133,9 @@ class Controller
                 if (m_quit_signaled) {
                     return;
                 }
-                // Allow this signal to return
-                SignalProcessingDone.Set();
-                // Allow next signal to be processed
+                // Allow the waiting signal handler thread to return
+                m_posixsignal_finished.Set();
+                // Allow next signal to be pushed to us
                 signalEvent.ProducerWaitHandle.Set();
             } else if (whichReady == 2) {
                 LoadProgressInfo progress = loadingEvent.TakeEvent();
@@ -187,11 +187,10 @@ class Controller
     }
 
     private void OnRedrawTimer(object? sender, ElapsedEventArgs args) {
+        // NB: This is called on a threadpool thread.
+        // Fake a SIGWINCH signal just to force a redraw on the main thread
         Log.Info("OnRedrawTimer Start");
-        // Fake a SIGWINCH signal just to force a redraw
-        signalEvent.ProducerWaitHandle.WaitOne();
-        signalEvent.AddEvent(PosixSignal.SIGWINCH);
-        SignalProcessingDone.WaitOne();
+        ExternalSignalInput(PosixSignal.SIGWINCH);
         Log.Info("OnRedrawTimer End");
     }
 
@@ -291,6 +290,15 @@ class Controller
             System.Console.WriteLine(progress.ErrorMessage);
             Environment.Exit(1);
         }
+    }
+
+    // This is called by other threads (thread pool ones)
+    // Signal our main thread safely.
+    // This does not return until our main thread ack's it.
+    public void ExternalSignalInput(PosixSignal signal) {
+        signalEvent.ProducerWaitHandle.WaitOne();
+        signalEvent.AddEvent(signal);
+        m_posixsignal_finished.WaitOne();
     }
 
 }
