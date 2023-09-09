@@ -28,6 +28,7 @@ INSTALL_DIR=~/.local/bin
 VIM_INSTALL_DIR=~/.vim/plugin/vilark
 DOTNET_DIR=dotnet_sdk
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_NOLOGO=1
 
 if [ ! -f $DOTNET_DIR/done ]; then
   echo "Downloading and extracting dotnet SDK (200 MB) to $DOTNET_DIR/ ..."
