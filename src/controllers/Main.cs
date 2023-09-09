@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Timers;
 namespace vilark;
 
 class Controller
@@ -9,6 +10,7 @@ class Controller
     private Console console;
     private InputEvent<KeyPress> keyboardEvent;
     private InputEvent<PosixSignal> signalEvent;
+    private InputEvent<LoadProgressInfo> loadingEvent;
     private Config m_config;
     private InputModel m_input_model;
     private OutputModel m_output_model;
@@ -25,6 +27,7 @@ class Controller
     // User / UX State
     private IScrollItem? m_chosen_item = null;
     private bool m_quit_signaled = false;
+    private System.Timers.Timer? m_redraw_timer = null;  // For the loading spinner only
 
     public Controller(Console console,
                             InputEvent<KeyPress> keyboardEvent,
@@ -34,10 +37,11 @@ class Controller
         this.console = console;
         this.keyboardEvent = keyboardEvent;
         this.signalEvent = signalEvent;
+        this.loadingEvent = new();
         m_options_model = optionsModel;
 
         m_config = new();
-        m_input_model = new(m_config);
+        m_input_model = new(optionsModel, loadingEvent);
         m_output_model = new();
 
         // Views
@@ -51,6 +55,11 @@ class Controller
         m_main_tab.ItemChosen += OnItemChosen;
         m_main_tab.m_searchbar.SearchChanged += OnSearchChanged;
         m_options_tab.SearchModeChanged += OnSearchChanged;
+
+        m_redraw_timer = new System.Timers.Timer(LoadingView.RedrawMilliseconds);
+        m_redraw_timer.Elapsed += OnRedrawTimer;
+        m_redraw_timer.AutoReset = true;
+        m_redraw_timer.Enabled = true;
     }
 
     public void Run(string[] args) {
@@ -61,9 +70,6 @@ class Controller
         console.Flush();
 
         try {
-            m_input_model.LoadInput(m_options_model);
-            UpdateSearchModel();
-
             PrepareViews();
             RunUntilExit();
             Log.Info("Clean exit");
@@ -102,7 +108,13 @@ class Controller
     private void RunUntilExit() {
         Redraw();
 
-        var waitHandles = new WaitHandle[] {keyboardEvent.ConsumerWaitHandle, signalEvent.ConsumerWaitHandle};
+        m_input_model.StartLoadingAsync();
+
+        var waitHandles = new WaitHandle[] {
+            keyboardEvent.ConsumerWaitHandle,
+            signalEvent.ConsumerWaitHandle,
+            loadingEvent.ConsumerWaitHandle
+        };
         while (true) {
             int whichReady = WaitHandle.WaitAny(waitHandles);
             if (whichReady == 0) {
@@ -125,6 +137,9 @@ class Controller
                 SignalProcessingDone.Set();
                 // Allow next signal to be processed
                 signalEvent.ProducerWaitHandle.Set();
+            } else if (whichReady == 2) {
+                LoadProgressInfo progress = loadingEvent.TakeEvent();
+                onProgressEvent(progress);
             } else {
                 throw new Exception($"invalid whichReady {whichReady}");
             }
@@ -171,6 +186,15 @@ class Controller
         console.Flush();
     }
 
+    private void OnRedrawTimer(object? sender, ElapsedEventArgs args) {
+        Log.Info("OnRedrawTimer Start");
+        // Fake a SIGWINCH signal just to force a redraw
+        signalEvent.ProducerWaitHandle.WaitOne();
+        signalEvent.AddEvent(PosixSignal.SIGWINCH);
+        SignalProcessingDone.WaitOne();
+        Log.Info("OnRedrawTimer End");
+    }
+
     private void OnSearchChanged(object? sender, bool unused) {
         UpdateSearchModel();
     }
@@ -181,21 +205,24 @@ class Controller
     }
 
     private void UpdateSearchModel() {
-        m_input_model.SetSearchFilter(m_main_tab.m_searchbar.SearchText);
-        m_main_tab.m_scollview.SetContentLines(m_input_model.FilteredData);
+        m_input_model.SetSearchFilter(m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
+        var data = m_input_model.FilteredData;
+        if (data != null) {
+            m_main_tab.m_scollview.SetContentLines(data);
+        }
     }
 
     private void ActiveTabChanged() {
         m_main_tab.SetVisible(false);
         m_options_tab.SetVisible(false);
         m_help_tab.SetVisible(false);
-        Action<bool> setFunc = m_titlebar.CurrentTabIndex switch {
-            0 => m_main_tab.SetVisible,
-            1 => m_options_tab.SetVisible,
-            2 => m_help_tab.SetVisible,
+        IView v = m_titlebar.CurrentTabIndex switch {
+            0 => m_main_tab,
+            1 => m_options_tab,
+            2 => m_help_tab,
             _ => throw new Exception("unknown tab"),
         };
-        setFunc(true);
+        v.SetVisible(true);
     }
 
     private void onKeyPress(KeyPress kp) {
@@ -239,6 +266,30 @@ class Controller
         }
         if (sig == PosixSignal.SIGTERM) {
             m_quit_signaled = true;
+        }
+    }
+
+    private void onProgressEvent(LoadProgressInfo progress) {
+        Log.Info($"Got progress {progress}");
+        m_main_tab.m_loading_view.CurrentData = progress;
+        if (progress.CompletedData != null) {
+            // Files all done loading.  Turn off the progress bar, and move to main UX
+            m_main_tab.m_loading_view.SetVisible(false);
+            m_main_tab.m_scollview.SetVisible(true);
+            m_input_model.SetCompletedData(progress.CompletedData);
+            // Update in case the user already typed something
+            UpdateSearchModel();
+
+            // Turn off the redraw timer
+            m_redraw_timer!.Enabled = false;
+
+            Redraw();
+        }
+        if (progress.ErrorMessage != null) {
+            CleanupTerminal();
+            System.Console.WriteLine("Error when scanning files");
+            System.Console.WriteLine(progress.ErrorMessage);
+            Environment.Exit(1);
         }
     }
 

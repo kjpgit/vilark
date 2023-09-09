@@ -62,12 +62,25 @@ readonly record struct QueuedDirectory(string path, IgnoreModel ignores);
 
 class DirectoryExplorer
 {
-    public Queue<QueuedDirectory> dir_queue = new();
+    private const int FILES_PROGRESS = 1000;
+    private const int DIRS_PROGRESS = 100;
+    private Queue<QueuedDirectory> dir_queue = new();
+    private int nr_files = 0;
+    private int nr_dirs = 0;
+    private int nr_ignored = 0;
+    private string rootPath;
+    private InputEvent<LoadProgressInfo> loadEvent;
 
-    public IEnumerable<DirectoryEntry> ScanDirectory(string rootPath)
+    public DirectoryExplorer(string rootPath, InputEvent<LoadProgressInfo> loadEvent) {
+        this.rootPath = rootPath;
+        this.loadEvent = loadEvent;
+    }
+
+    public void Scan()
     {
         Log.Info($"ScanDirectory: {rootPath}");
         var initialIgnorer = new IgnoreModel(rootPath);
+        List<DirectoryEntry> entries = new();
 
 	// Make the initial root path less ugly
         // The rest we have to clean up during display
@@ -76,11 +89,7 @@ class DirectoryExplorer
         }
 
         Log.Info($"ScanDirectory: normalized={rootPath}");
-
-        dir_queue.Clear();
         dir_queue.Enqueue(new QueuedDirectory(rootPath, initialIgnorer));
-        int nr_files = 0;
-        int nr_dirs = 0;
 
         while (dir_queue.Count > 0) {
             QueuedDirectory context = dir_queue.Dequeue();
@@ -93,31 +102,35 @@ class DirectoryExplorer
                 ignores = new IgnoreModel(newGitIgnoreFile, context.ignores);
             }
 
-            //
-            // This code looks awkward, because you can't have `yield return` in a try/catch block
-            //
             string[]? allFiles = null;
             try {
                 //Log.Debug($"reading files in {dirPath}");
                 allFiles = Directory.GetFiles(dirPath);
             } catch (System.UnauthorizedAccessException e) {
                 Log.Info($"Caught: {e}");
-                // Don't ignore if it's the root.
+                // Fatal error if we can't access the root path
                 if (dirPath == rootPath) {
-                    throw;
+                    loadEvent.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
+                    return;
                 }
             }
             if (allFiles != null) {
                 foreach (string f in allFiles) {
-                    if (ignores.IsIgnored(f))
+                    if (ignores.IsIgnored(f)) {
+                        nr_ignored++;
                         continue;
+                    }
                     //Log.Info($"read file {f}");
-                    nr_files++;
                     var dentry = new DirectoryEntry {
                             DirPath= dirPath,
                             Name= Path.GetFileName(f)
                     };
-                    yield return dentry;
+                    entries.Add(dentry);
+
+                    nr_files++;
+                    if ((nr_files % FILES_PROGRESS) == 0) {
+                        ShowProgress();
+                    }
                 }
             }
 
@@ -133,11 +146,17 @@ class DirectoryExplorer
                 // It'also nice seeing a BFS tree growing down and to the right in the UX.
                 foreach (string d in allDirs) {
                     // Ensure we match a rule like 'node_modules/'
-                    if (ignores.IsIgnored(d + "/"))
+                    if (ignores.IsIgnored(d + "/")) {
+                        nr_ignored++;
                         continue;
+                    }
                     //Log.Info($"read dir {d}");
-                    nr_dirs++;
                     dir_queue.Enqueue(new QueuedDirectory(d, ignores));
+
+                    nr_dirs++;
+                    if ((nr_dirs % DIRS_PROGRESS) == 0) {
+                        ShowProgress();
+                    }
 
                     // Don't think we need to care about showing empty dirs.
                     // We can still create a folder structure easily from the file data.
@@ -146,6 +165,12 @@ class DirectoryExplorer
         }
 
         Log.Info($"nr_files={nr_files}, nr_dirs={nr_dirs}");
+        loadEvent.AddEvent(new LoadProgressInfo(CompletedData: entries));
+    }
+
+    private void ShowProgress() {
+        var progress = new LoadProgressInfo(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
+        loadEvent.AddEvent(progress);
     }
 
 }

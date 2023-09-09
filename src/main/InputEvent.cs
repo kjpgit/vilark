@@ -19,27 +19,44 @@ class InputEvent<T>
     private EventWaitHandle producerGo = new EventWaitHandle(initialState:true, EventResetMode.AutoReset);
     private T? m_event = default(T);
 
+    // For producers who want to keep replacing the event (like the loading progress),
+    // without waiting for consumer to take it.
+    private readonly object m_event_lock = new object();
+
+    // Create a new InputEvent
     public InputEvent() { }
-
-    public void AddEventAndWait(T e) {
-        m_event = e;
-        WaitHandle.SignalAndWait(consumerGo, producerGo);
-    }
-
-    public void AddEvent(T e) {
-        m_event = e;
-        consumerGo.Set();
-    }
-
-    public T TakeEvent() {
-        if (m_event == null) {
-            throw new Exception("null");
-        }
-        return m_event;
-    }
 
     public EventWaitHandle ConsumerWaitHandle => consumerGo;
     public EventWaitHandle ProducerWaitHandle => producerGo;
+
+    // Producer: Add/Replace the event, and block until the consumer says you can go again
+    // Call this after waiting on ProducerWaitHandle
+    public void AddEventAndWait(T e) {
+        lock (m_event_lock) {
+            m_event = e;
+        }
+        WaitHandle.SignalAndWait(consumerGo, producerGo);
+    }
+
+    // Producer: Add/Replace the event
+    // Call this after waiting on ProducerWaitHandle
+    public void AddEvent(T e) {
+        lock (m_event_lock) {
+            m_event = e;
+        }
+        consumerGo.Set();
+    }
+
+    // Consumer: call this after waiting on ConsumerWaitHandle
+    public T TakeEvent() {
+        T? ret = default(T);
+        lock (m_event_lock) {
+            ret = m_event ?? throw new Exception("null event");
+            m_event = default(T);
+        }
+        return ret;
+    }
+
 
 }
 
