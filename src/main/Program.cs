@@ -4,7 +4,7 @@ using vilark;
 
 class ViLarkMain
 {
-    public const string VERSION = "1.2";
+    public const string VERSION = "1.3";
 
     static void Main(string[] args)
     {

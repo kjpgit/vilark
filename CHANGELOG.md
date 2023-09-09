@@ -1,5 +1,10 @@
 # ViLark Changelog
 
+## 2023.9.9 (Version 1.3)
+* Async file scanning during startup, with progress spinner
+* Can ctrl-c/ctrl-z during initial file scan
+* Ignore Library/ by default, for Mac OS
+
 ## 2023.9.8 (Version 1.2)
 * MacOS support.  Tested on Mac OS Ventura, ARM64 (EC2)
 * Cursor wraps around to top/bottom in main page
