@@ -9,6 +9,7 @@ class IgnoreModel
         ".git",
         "*.swp",
         "*.pyc",
+        "Library/",
         "node_modules",
         "obj",
         "bin",
