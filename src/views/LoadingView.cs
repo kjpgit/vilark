@@ -20,8 +20,8 @@ class LoadingView: IView
 
         string spinner = GetCurrentSpinner();
         ctx.DrawRow($"  {spinner} Looking for files...");
-        ctx.DrawRow($"  Found:   {snapshot.Processed}");
-        ctx.DrawRow($"  Ignored: {snapshot.Ignored}");
+        ctx.DrawRow($"  Found:   {snapshot.Processed ?? 0}");
+        ctx.DrawRow($"  Ignored: {snapshot.Ignored ?? 0}");
 
         while (ctx.usedRows < Size.height) {
             ctx.DrawRow("");
