@@ -76,7 +76,7 @@ class DirectoryExplorer
         this.loadEvent = loadEvent;
     }
 
-    public void Scan()
+    public IEnumerable<IScrollItem> Scan()
     {
         Log.Info($"ScanDirectory: {rootPath}");
         var initialIgnorer = new IgnoreModel(rootPath);
@@ -164,7 +164,7 @@ class DirectoryExplorer
         }
 
         Log.Info($"nr_files={nr_files}, nr_dirs={nr_dirs}");
-        loadEvent.AddEvent(new LoadProgressInfo(CompletedData: entries));
+        return entries;
     }
 
     private void ShowProgress() {

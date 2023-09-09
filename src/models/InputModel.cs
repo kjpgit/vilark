@@ -31,13 +31,14 @@ class InputModel
 
     private void LoadInput(string selectedDirectory) {
         try {
-            LoadInputImpl(selectedDirectory);
+            var entries = LoadInputImpl(selectedDirectory);
+            m_load_event.AddEvent(new LoadProgressInfo(CompletedData: entries));
         } catch (Exception e) {
             m_load_event.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
         }
     }
 
-    private void LoadInputImpl(string selectedDirectory) {
+    private IEnumerable<IScrollItem> LoadInputImpl(string selectedDirectory) {
         var inputFileName = Environment.GetEnvironmentVariable("VILARK_INPUT_FILE");
         if (inputFileName != null) {
             // An explicit input file was given.
@@ -54,12 +55,12 @@ class InputModel
                     entries.Add(new ExternalInputEntry {itemName=line, displayAsFile=displayAsFile});
                 }
             }
-            var progress = new LoadProgressInfo(CompletedData: entries);
-            m_load_event.AddEvent(progress);
+            return entries;
         } else {
             // Load files, recursively, and honor all ignore rules
             var explorer = new DirectoryExplorer(selectedDirectory, m_load_event);
-            explorer.Scan();
+            var entries = explorer.Scan();
+            return entries;
         }
     }
 
