@@ -89,7 +89,7 @@ class Console
         _wb.Flush();
     }
 
-    public void WriteIntAsText(int n) {
+    private void WriteIntAsText(int n) {
         Span<byte> n_bytes = stackalloc byte[20];
         int len;
         Utf8Formatter.TryFormat(n, n_bytes, out len);
