@@ -285,6 +285,12 @@ class Controller
 
             Redraw();
         }
+        if (progress.ErrorMessage != null) {
+            CleanupTerminal();
+            System.Console.WriteLine("Error when scanning files");
+            System.Console.WriteLine(progress.ErrorMessage);
+            Environment.Exit(1);
+        }
     }
 
 }

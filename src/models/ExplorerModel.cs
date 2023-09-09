@@ -76,7 +76,7 @@ class DirectoryExplorer
         this.loadEvent = loadEvent;
     }
 
-    public List<DirectoryEntry> Scan()
+    public void Scan()
     {
         Log.Info($"ScanDirectory: {rootPath}");
         var initialIgnorer = new IgnoreModel(rootPath);
@@ -108,9 +108,10 @@ class DirectoryExplorer
                 allFiles = Directory.GetFiles(dirPath);
             } catch (System.UnauthorizedAccessException e) {
                 Log.Info($"Caught: {e}");
-                // Don't ignore error if it's the root.
+                // Fatal error if we can't access the root path
                 if (dirPath == rootPath) {
-                    throw;
+                    loadEvent.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
+                    return;
                 }
             }
             if (allFiles != null) {
@@ -164,7 +165,7 @@ class DirectoryExplorer
         }
 
         Log.Info($"nr_files={nr_files}, nr_dirs={nr_dirs}");
-        return entries;
+        loadEvent.AddEvent(new LoadProgressInfo(CompletedData: entries));
     }
 
     private void ShowProgress() {

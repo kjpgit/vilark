@@ -1,7 +1,9 @@
 namespace vilark;
 
 
-record struct LoadProgressInfo(int Processed, int Ignored, IEnumerable<IScrollItem>? CompletedData = null);
+record struct LoadProgressInfo(int? Processed = null, int? Ignored = null,
+        IEnumerable<IScrollItem>? CompletedData = null,
+        string? ErrorMessage = null);
 
 class InputModel
 {
@@ -32,7 +34,7 @@ class InputModel
         LoadInputImpl(selectedDirectory);
     }
 
-    public void LoadInputImpl(string selectedDirectory) {
+    private void LoadInputImpl(string selectedDirectory) {
         var inputFileName = Environment.GetEnvironmentVariable("VILARK_INPUT_FILE");
         if (inputFileName != null) {
             // An explicit input file was given.
@@ -49,18 +51,13 @@ class InputModel
                     entries.Add(new ExternalInputEntry {itemName=line, displayAsFile=displayAsFile});
                 }
             }
-            SendCompletedData(entries);
+            var progress = new LoadProgressInfo(CompletedData: entries);
+            m_load_event.AddEvent(progress);
         } else {
             // Load files, recursively, and honor all ignore rules
             var explorer = new DirectoryExplorer(selectedDirectory, m_load_event);
-            var entries = explorer.Scan();
-            SendCompletedData(entries);
+            explorer.Scan();
         }
-    }
-
-    private void SendCompletedData(IEnumerable<IScrollItem> entries) {
-        var progress = new LoadProgressInfo(0, 0, entries);
-        m_load_event.AddEvent(progress);
     }
 
     public void SetCompletedData(IEnumerable<IScrollItem> data) {
