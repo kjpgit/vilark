@@ -17,11 +17,13 @@ class ScrollView: IView
 
     private int lineCursor = 0;
     private int lineScroll = 0;
-    private IEnumerable<IScrollItem> content_lines = null!;
+    private IEnumerable<IScrollItem>? content_lines = null;
 
     public ScrollView(Config config) {
         m_config = config;
     }
+
+    public int TotalLineCount => content_lines != null ? content_lines.Count() : 0;
 
     // Called whenever the search results change, so we also adjust the scroll
     public void SetContentLines(IEnumerable<IScrollItem> lines) {
@@ -36,7 +38,7 @@ class ScrollView: IView
             if (lineScroll == 0) {
                 // Can't scroll up anymore, wrap around to bottom
                 lineCursor = Size.height + 999;  // this will be corrected by ClampScroll
-                lineScroll = content_lines.Count() + 999; // this will be corrected by ClampScroll
+                lineScroll = TotalLineCount + 999; // this will be corrected by ClampScroll
                 ClampScroll();
             } else {
                 Scroll(-1);
@@ -59,8 +61,8 @@ class ScrollView: IView
         int lines = delta switch {
             2 => Size.height,
             -2 => -Size.height,
-            3 => content_lines.Count(),
-            -3 => -content_lines.Count(),
+            3 => TotalLineCount,
+            -3 => -TotalLineCount,
             _ => delta
         };
         Log.Info($"Scroll {delta} -> {lines}");
@@ -69,15 +71,19 @@ class ScrollView: IView
     }
 
     public IScrollItem? GetCurrentItem() {
-        var cur = content_lines.Skip(lineScroll + lineCursor).Take(1).SingleOrDefault();
-        return cur;
+        if (content_lines != null) {
+            var cur = content_lines.Skip(lineScroll + lineCursor).Take(1).SingleOrDefault();
+            return cur;
+        } else {
+            return null;
+        }
     }
 
     override public void Draw(Console console) {
-        int all_count = content_lines.Count();
+        int all_count = TotalLineCount;
         var si = Size.GetScrollInfo(all_count, lineScroll);
 
-        var visible_lines = content_lines.Skip(lineScroll).Take(Size.height).ToList();
+        var visible_lines = content_lines!.Skip(lineScroll).Take(Size.height).ToList();
 
         //Log.Info($"lineScroll: {lineScroll}");
         //Log.Info($"all_count: {all_count}");
@@ -150,7 +156,7 @@ class ScrollView: IView
     }
 
     // If there are 10 lines and the window height is 6, the max lines we can shift up is 4
-    private int MaxLineScrollOffset => Math.Max(content_lines.Count() - Size.height, 0);
+    private int MaxLineScrollOffset => Math.Max(TotalLineCount - Size.height, 0);
 
     // (10 total lines - 2 shifted up) = 8
     // 8-1 is 7, meaning the cursor can move forward 7 from the first row.
@@ -160,7 +166,7 @@ class ScrollView: IView
     //
     // 1 total line (all the others filtered out) - 1 = 0, no more following rows to move to
     private int MaxCursorOffset => Math.Min(
-                    Math.Max(content_lines.Count() - lineScroll - 1, 0), // num lines following
+                    Math.Max(TotalLineCount - lineScroll - 1, 0), // num lines following
                     Math.Max(Size.height - 1, 0) // Viewport size
                     );
 

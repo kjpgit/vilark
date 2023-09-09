@@ -1,18 +1,38 @@
 namespace vilark;
 
+
+record struct LoadProgressInfo(int Processed, int Ignored, IEnumerable<IScrollItem>? CompletedData = null);
+
 class InputModel
 {
-    private Config m_config;
-    private IEnumerable<IScrollItem> _data = null!;
-    private IEnumerable<IScrollItem> _filtered_data = null!;
+    private IEnumerable<IScrollItem>? _data = null;
+    private IEnumerable<IScrollItem>? _filtered_data = null;
+    private Thread? _load_thread = null;
+    private OptionsModel m_options;
+    private InputEvent<LoadProgressInfo> m_load_event;
 
-    public IEnumerable<IScrollItem> FilteredData => _filtered_data;
+    // This is null when we are still loading
+    public IEnumerable<IScrollItem>? FilteredData => _filtered_data;
 
-    public InputModel(Config config) {
-        m_config = config;
+    public InputModel(OptionsModel options, InputEvent<LoadProgressInfo> loadEvent) {
+        m_options = options;
+        m_load_event = loadEvent;
     }
 
-    public void LoadInput(OptionsModel optionsModel) {
+    public void StartLoadingAsync() {
+        _load_thread = new Thread(() => {
+                LoadInput(m_options.SelectedDirectory ?? ".");
+                });
+        _load_thread.Name = "fileFinder";
+        _load_thread.Start();
+    }
+
+    private void LoadInput(string selectedDirectory) {
+        // todo: try/catch here, and forward to main thread
+        LoadInputImpl(selectedDirectory);
+    }
+
+    public void LoadInputImpl(string selectedDirectory) {
         var inputFileName = Environment.GetEnvironmentVariable("VILARK_INPUT_FILE");
         if (inputFileName != null) {
             // An explicit input file was given.
@@ -29,19 +49,31 @@ class InputModel
                     entries.Add(new ExternalInputEntry {itemName=line, displayAsFile=displayAsFile});
                 }
             }
-            _data = entries;
+            SendCompletedData(entries);
         } else {
             // Load files, recursively, and honor all ignore rules
-            var exp = new DirectoryExplorer();
-            string path = optionsModel.SelectedDirectory ?? ".";
-            _data = exp.ScanDirectory(path).ToList();
+            var explorer = new DirectoryExplorer(selectedDirectory, m_load_event);
+            var entries = explorer.Scan();
+            SendCompletedData(entries);
         }
     }
 
-    public void SetSearchFilter(string searchText) {
+    private void SendCompletedData(IEnumerable<IScrollItem> entries) {
+        var progress = new LoadProgressInfo(0, 0, entries);
+        m_load_event.AddEvent(progress);
+    }
+
+    public void SetCompletedData(IEnumerable<IScrollItem> data) {
+        _data = data;
+    }
+
+    public void SetSearchFilter(string searchText, FuzzySearchMode mode) {
+        if (_data == null) {
+            return;
+        }
         if (searchText != String.Empty) {
             List<IScrollItem> filtered = new();
-            var query = new FuzzyTextQuery(searchText, m_config.FuzzySearchMode);
+            var query = new FuzzyTextQuery(searchText, mode);
             foreach (var dentry in _data) {
                 var result = query.RunQuery(dentry.GetSelectionString());
                 if (result.is_complete_match) {

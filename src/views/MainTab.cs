@@ -4,6 +4,7 @@ class MainTab: IView
 {
     public event EventHandler<IScrollItem>? ItemChosen;
 
+    public LoadingView m_loading_view = new();
     public SearchBar m_searchbar = new();
     public SpacerBar m_spacerbar = new();
     public ScrollView m_scollview;
@@ -30,14 +31,16 @@ class MainTab: IView
         usedRows += 1;
 
         // Main file browsing area, w/scrolling
+        m_loading_view.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
         m_scollview.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
-        m_scollview.SetVisible(true);
+        m_loading_view.SetVisible(true);
     }
 
     public override void Draw(Console console) {
         m_searchbar.DrawIfVisible(console);
         m_spacerbar.DrawIfVisible(console);
         m_scollview.DrawIfVisible(console);
+        m_loading_view.DrawIfVisible(console);
     }
 
     public override void OnKeyPress(KeyPress kp) {
