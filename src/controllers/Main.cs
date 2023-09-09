@@ -8,14 +8,13 @@ class Controller
 {
     // Models / Data
     private Console console;
-    private InputEvent<KeyPress> keyboardEvent;
-    private InputEvent<PosixSignal> signalEvent;
-    private InputEvent<LoadProgressInfo> loadingEvent;
+    private EventQueue<KeyPress> keyboardEvent;
+    private EventQueue<SignalPayload> signalEvent;
+    private EventQueue<LoadProgressInfo> loadingEvent;
     private Config m_config;
     private InputModel m_input_model;
     private OutputModel m_output_model;
     private OptionsModel m_options_model;
-    private EventWaitHandle m_posixsignal_finished = new EventWaitHandle(initialState:false, EventResetMode.AutoReset);
 
     // Views
     private TitleBar m_titlebar;
@@ -30,8 +29,8 @@ class Controller
     private System.Timers.Timer? m_redraw_timer = null;  // For the loading spinner only
 
     public Controller(Console console,
-                            InputEvent<KeyPress> keyboardEvent,
-                            InputEvent<PosixSignal> signalEvent,
+                            EventQueue<KeyPress> keyboardEvent,
+                            EventQueue<SignalPayload> signalEvent,
                             OptionsModel optionsModel)
     {
         this.console = console;
@@ -124,19 +123,15 @@ class Controller
                 if (m_quit_signaled) {
                     return;
                 }
-                // Allow next keypress read
-                keyboardEvent.ProducerWaitHandle.Set();
             } else if (whichReady == 1) {
                 // Posix Signal
-                PosixSignal sig = signalEvent.TakeEvent();
-                onPosixSignal(sig);
+                SignalPayload payload = signalEvent.TakeEvent();
+                onPosixSignal(payload.signal);
                 if (m_quit_signaled) {
                     return;
                 }
                 // Allow the waiting signal handler thread to return
-                m_posixsignal_finished.Set();
-                // Allow next signal to be pushed to us
-                signalEvent.ProducerWaitHandle.Set();
+                payload.doneProcessing.Set();
             } else if (whichReady == 2) {
                 LoadProgressInfo progress = loadingEvent.TakeEvent();
                 onProgressEvent(progress);
@@ -296,9 +291,11 @@ class Controller
     // Signal our main thread safely.
     // This does not return until our main thread ack's it.
     public void ExternalSignalInput(PosixSignal signal) {
-        signalEvent.ProducerWaitHandle.WaitOne();
-        signalEvent.AddEvent(signal);
-        m_posixsignal_finished.WaitOne();
+        using (var doneProcessing = new EventWaitHandle(false, EventResetMode.AutoReset)) {
+            var payload = new SignalPayload(signal, doneProcessing);
+            signalEvent.AddEvent(payload);
+            payload.doneProcessing.WaitOne();
+        }
     }
 
 }

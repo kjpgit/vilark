@@ -2,6 +2,8 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using vilark;
 
+record struct SignalPayload(PosixSignal signal, EventWaitHandle doneProcessing);
+
 class ViLarkMain
 {
     public const string VERSION = "1.3";
@@ -32,8 +34,8 @@ class ViLarkMain
         // Options look ok, start up the UX
         var console = new vilark.Console();
         var keyboard = new Keyboard();
-        var keyboardEvent = new InputEvent<KeyPress>();
-        var signalEvent = new InputEvent<PosixSignal>();
+        var keyboardEvent = new EventQueue<KeyPress>();
+        var signalEvent = new EventQueue<SignalPayload>();
         var controller = new Controller(console, keyboardEvent, signalEvent, optionsModel);
 
         // Synchronization is important here.. one signal at a time is processed by main thread,
@@ -79,12 +81,10 @@ class ViLarkMain
         // we're just a simple dialog so it's probably fine.
         UnixProcess.RegisterSignalHandler(PosixSignal.SIGINT, (context) => captureSignal(context, false));
 
-
         // Read from keyboard/tty in a separate thread.
         var consoleReadThread = new Thread(() => {
-                keyboardEvent.ProducerWaitHandle.WaitOne();
                 foreach (KeyPress kp in keyboard.GetKeyPress()) {
-                    keyboardEvent.AddEventAndWait(kp);
+                    keyboardEvent.AddEvent(kp);
                 }
             });
         consoleReadThread.Name = "consoleReadThread";

@@ -11,12 +11,12 @@ class InputModel
     private IEnumerable<IScrollItem>? _filtered_data = null;
     private Thread? _load_thread = null;
     private OptionsModel m_options;
-    private InputEvent<LoadProgressInfo> m_load_event;
+    private EventQueue<LoadProgressInfo> m_load_event;
 
     // This is null when we are still loading
     public IEnumerable<IScrollItem>? FilteredData => _filtered_data;
 
-    public InputModel(OptionsModel options, InputEvent<LoadProgressInfo> loadEvent) {
+    public InputModel(OptionsModel options, EventQueue<LoadProgressInfo> loadEvent) {
         m_options = options;
         m_load_event = loadEvent;
     }

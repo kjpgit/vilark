@@ -69,9 +69,9 @@ class DirectoryExplorer
     private int nr_dirs = 0;
     private int nr_ignored = 0;
     private string rootPath;
-    private InputEvent<LoadProgressInfo> loadEvent;
+    private EventQueue<LoadProgressInfo> loadEvent;
 
-    public DirectoryExplorer(string rootPath, InputEvent<LoadProgressInfo> loadEvent) {
+    public DirectoryExplorer(string rootPath, EventQueue<LoadProgressInfo> loadEvent) {
         this.rootPath = rootPath;
         this.loadEvent = loadEvent;
     }
