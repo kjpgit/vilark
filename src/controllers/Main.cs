@@ -207,7 +207,7 @@ class Controller
         m_input_model.SetSearchFilter(m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
         var data = m_input_model.FilteredData;
         if (data != null) {
-            m_main_tab.m_scollview.SetContentLines(data);
+            m_main_tab.m_scrollview.SetContentLines(data);
         }
     }
 
@@ -274,7 +274,7 @@ class Controller
         if (progress.CompletedData != null) {
             // Files all done loading.  Turn off the progress bar, and move to main UX
             m_main_tab.m_loading_view.SetVisible(false);
-            m_main_tab.m_scollview.SetVisible(true);
+            m_main_tab.m_scrollview.SetVisible(true);
             m_input_model.SetCompletedData(progress.CompletedData);
             // Update in case the user already typed something
             UpdateSearchModel();
