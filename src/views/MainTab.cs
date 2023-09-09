@@ -11,6 +11,11 @@ class MainTab: IView
 
     public MainTab(Config config) {
         m_scollview = new(config);
+
+        // Initially visible views
+        m_searchbar.SetVisible(true);
+        m_spacerbar.SetVisible(true);
+        m_loading_view.SetVisible(true);
     }
 
     public override void UpdateCursor(Console console) {
@@ -24,16 +29,13 @@ class MainTab: IView
 
         // Search bar and spacer/whitespace below
         m_searchbar.Resize(Size.Subrect(0, 0, Size.width, 1));
-        m_searchbar.SetVisible(true);
         usedRows += 1;
         m_spacerbar.Resize(Size.Subrect(0, usedRows, Size.width, 1));
-        m_spacerbar.SetVisible(true);
         usedRows += 1;
 
         // Main file browsing area, w/scrolling
         m_loading_view.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
         m_scollview.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
-        m_loading_view.SetVisible(true);
     }
 
     public override void Draw(Console console) {
