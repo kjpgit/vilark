@@ -71,7 +71,8 @@ class Controller
 
         try {
             PrepareViews();
-            RunUntilExit();
+            Redraw();
+            RunEventLoop();
             Log.Info("Clean exit");
 
             CleanupTerminal();
@@ -81,12 +82,12 @@ class Controller
             m_output_model.WriteOutput(m_chosen_item);
             Environment.Exit(0);
         } catch (Exception e) {
-            var edi = ExceptionDispatchInfo.Capture(e);
             Log.Info("Unclean exit");
             Log.Exception(e);
             CleanupTerminal();
-            edi.Throw();
-            //Environment.Exit(1);
+            System.Console.WriteLine("Unexpected error");
+            System.Console.WriteLine(e.ToString());
+            Environment.Exit(1);
         }
     }
 
@@ -105,8 +106,7 @@ class Controller
         m_bottombar.SetVisible(true);
     }
 
-    private void RunUntilExit() {
-        Redraw();
+    private void RunEventLoop() {
 
         m_input_model.StartLoadingAsync();
 
