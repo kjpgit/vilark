@@ -1,3 +1,4 @@
+// Copyright (C) 2023 Karl Pickett / ViLark Project
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;

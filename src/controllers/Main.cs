@@ -1,3 +1,4 @@
+// Copyright (C) 2023 Karl Pickett / ViLark Project
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;

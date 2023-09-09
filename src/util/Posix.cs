@@ -1,3 +1,4 @@
+// Copyright (C) 2023 Karl Pickett / ViLark Project
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
