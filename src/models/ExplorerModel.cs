@@ -110,8 +110,7 @@ class DirectoryExplorer
                 Log.Info($"Caught: {e}");
                 // Fatal error if we can't access the root path
                 if (dirPath == rootPath) {
-                    loadEvent.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
-                    return;
+                    throw;
                 }
             }
             if (allFiles != null) {

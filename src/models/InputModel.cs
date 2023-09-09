@@ -30,8 +30,11 @@ class InputModel
     }
 
     private void LoadInput(string selectedDirectory) {
-        // todo: try/catch here, and forward to main thread
-        LoadInputImpl(selectedDirectory);
+        try {
+            LoadInputImpl(selectedDirectory);
+        } catch (Exception e) {
+            m_load_event.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
+        }
     }
 
     private void LoadInputImpl(string selectedDirectory) {
