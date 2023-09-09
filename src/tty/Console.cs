@@ -117,6 +117,14 @@ class Console
 }
 
 
+/*
+ * This class was mainly written to experiment with the
+ * low level Span/bytes handling, which avoids memory allocations,
+ * and also ensure callers aren't doing any expensive conversions.
+ *
+ * There's no real reason to use it over a the standard buffered byte stream.
+ *
+ */
 class ConsoleBufferedWriter
 {
     private Stream _os = System.Console.OpenStandardOutput();
