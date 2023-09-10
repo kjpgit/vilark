@@ -17,6 +17,10 @@ readonly record struct ConsoleDimensions(int rows, int cols);
 
 class Console
 {
+    public Console() {
+        _wb = new(System.Console.OpenStandardOutput(), 4096);
+    }
+
     // ANSI Erase in Display
     public void ClearScreen() {
         Write("\x1b[2J"u8);
@@ -114,59 +118,5 @@ class Console
         }
     }
 
-    private ConsoleBufferedWriter _wb = new ConsoleBufferedWriter();
-}
-
-
-/*
- * This class was mainly written to experiment with the
- * low level Span/bytes handling, which avoids memory allocations,
- * and also ensure callers aren't doing any expensive conversions.
- *
- * There's no real reason to use it over a the standard buffered byte stream.
- *
- */
-class ConsoleBufferedWriter
-{
-    private Stream _os = System.Console.OpenStandardOutput();
-
-    public void Write(ReadOnlySpan<byte> bytes) {
-        if (GetCurrentCapacity() >= bytes.Length) {
-            // Fast path, append to current buffer
-            _append(bytes);
-        } else {
-            // Need to flush
-            Flush();
-            if (GetCurrentCapacity() >= bytes.Length) {
-                _append(bytes);
-            } else {
-                // Too large to buffer, don't bother
-                _write(bytes);
-
-            }
-        }
-    }
-
-    public void Flush() {
-        var src = new ReadOnlySpan<byte>(_buffer).Slice(0, _length);
-        _write(src);
-        _length = 0;
-    }
-
-    private void _append(ReadOnlySpan<byte> bytes) {
-        var target = new Span<byte>(_buffer, _length, bytes.Length);
-        bytes.CopyTo(target);
-        _length += bytes.Length;
-    }
-
-    private void _write(ReadOnlySpan<byte> bytes) {
-        _os.Write(bytes);
-    }
-
-    public int GetLength() { return _length; }
-    public int GetMaxCapacity() { return _buffer.Length; }
-    public int GetCurrentCapacity() { return GetMaxCapacity() - GetLength(); }
-
-    private byte[] _buffer = new byte[4000];
-    private int _length = 0;
+    private BufferedStream _wb;
 }
