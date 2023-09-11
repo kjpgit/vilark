@@ -3,7 +3,7 @@ namespace vilark;
 
 class MainTab: IView
 {
-    public event EventHandler<IScrollItem>? ItemChosen;
+    public event EventHandler<ISelectableItem>? ItemChosen;
 
     public LoadingView m_loading_view = new();
     public SearchBar m_searchbar = new();

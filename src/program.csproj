@@ -12,9 +12,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Ignore" Version="0.1.48" />
         <!--
-        <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
+        <PackageReference Include="Ignore" Version="0.1.48" />
         -->
     </ItemGroup>
 

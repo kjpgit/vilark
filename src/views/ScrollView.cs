@@ -3,10 +3,6 @@ using static vilark.BoxChars;
 
 namespace vilark;
 
-interface IScrollItem {
-    public string GetDisplayString();
-    public string GetSelectionString();
-}
 
 // This also draws the left and right frame, because the scrollbar is on the right edge
 class ScrollView: IView
@@ -18,7 +14,7 @@ class ScrollView: IView
 
     private int lineCursor = 0;
     private int lineScroll = 0;
-    private IEnumerable<IScrollItem>? content_lines = null;
+    private IEnumerable<ISelectableItem>? content_lines = null;
 
     public ScrollView(Config config) {
         m_config = config;
@@ -27,7 +23,7 @@ class ScrollView: IView
     public int TotalLineCount => content_lines != null ? content_lines.Count() : 0;
 
     // Called whenever the search results change, so we also adjust the scroll
-    public void SetContentLines(IEnumerable<IScrollItem> lines) {
+    public void SetContentLines(IEnumerable<ISelectableItem> lines) {
         content_lines = lines;
         ClampScroll();
     }
@@ -71,7 +67,7 @@ class ScrollView: IView
         ClampScroll();
     }
 
-    public IScrollItem? GetCurrentItem() {
+    public ISelectableItem? GetCurrentItem() {
         if (content_lines != null) {
             var cur = content_lines.Skip(lineScroll + lineCursor).Take(1).SingleOrDefault();
             return cur;

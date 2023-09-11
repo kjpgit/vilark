@@ -29,8 +29,17 @@ class Config
     public ColorRGB SelectionFGColor = ColorRGB.FromString("rgb(10,30,50)");
     public ColorRGB SelectionBGColor = ColorRGB.FromString("rgb(222,236,249)");
 
+    public bool GitIgnoresEnabled;
+
     public Config() {
         LoadSettings();
+
+        GitIgnoresEnabled = true;
+        var e = Environment.GetEnvironmentVariable("VILARK_NO_GITIGNORES");
+        if (e != null && e != "0") {
+            Log.Info("Gitignores disabled");
+            GitIgnoresEnabled = false;
+        }
     }
 
     public static string? GetSettingsFile() {

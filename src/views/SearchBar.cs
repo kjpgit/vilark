@@ -7,6 +7,7 @@ class SearchBar: IView
 {
     public String SearchText => searchText;  // sometimes we need to pull
     public event EventHandler<bool>? SearchChanged;
+    public int? TotalCount = null;
 
     private const int searchBoxLength = 25;
     private string searchText = "";
@@ -87,6 +88,13 @@ class SearchBar: IView
         console.WriteRepeated(" "u8, searchFinish);
         console.SetUnderline(false);
         usedCols += searchFinish;
+
+        // Show count
+        if (TotalCount != null) {
+            var countText = new DisplayText($"  ({TotalCount})");
+            console.Write(countText);
+            usedCols += countText.Columns;
+        }
 
         int fillCols = Size.NumRemainingCols(usedCols) - 1;
         console.WriteRepeated(" "u8, fillCols);

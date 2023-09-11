@@ -5,7 +5,7 @@ namespace vilark;
 record struct Notification(
         int? Processed = null,
         int? Ignored = null,
-        IEnumerable<IScrollItem>? CompletedData = null,
+        IEnumerable<ISelectableItem>? CompletedData = null,
         string? ErrorMessage = null,
         string? WebRequest = null,
         bool ForceRedraw = false,

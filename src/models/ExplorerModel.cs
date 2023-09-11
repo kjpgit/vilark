@@ -1,61 +1,38 @@
 // Copyright (C) 2023 Karl Pickett / ViLark Project
+using System.Diagnostics;
 namespace vilark;
 
 
-class ExternalInputEntry : IScrollItem
+// NB: structs can't be covariant in List<>, so this is a class
+class DirectoryEntry : ISelectableItem
 {
-    required public string itemName;
-    public bool displayAsFile = false;
+    // If this is not null, implicitly add it to the directory path in each instance.
+    // It is not used for display or searching, only final selection output.
+    // It's static because we know we are only viewing a single dir hierarchy at a time.
+    private static string _abs_dir_prefix = "";
 
-    public string GetSelectionString() => itemName;
-    public string GetDisplayString() => displayAsFile ? GetFileDisplayString() : itemName;
+    // The portion of the path below _abs_dir_prefix.
+    // We combine the dir and the file to optimize search speed.
+    // Example: "file.txt", "github/myproject/foo.txt"
+    private string ending_path;
 
-    private string GetFileDisplayString() {
-        int splitPos = itemName.LastIndexOf('/');
-        if (splitPos > 0 && !itemName.EndsWith("/")) {
-            string dirPart = itemName.Substring(0, splitPos);
-            string filePart = itemName.Substring(splitPos+1);
-            return dirPart + " | " + filePart;
-        } else {
-            return itemName;
-        }
-    }
-}
-
-// NB: structs can't be covariant in List<>
-class DirectoryEntry : IScrollItem
-{
-    required public string DirPath;
-    required public string Name;
-
-    public string GetSelectionString() {
-        if (DirPath != "") {
-            return DirPath + "/" + Name;
-        } else {
-            return Name;
-        }
+    public static void SetRootPrefix(string prefix) {
+        Log.Info($"DirectoryEntry._abs_dir_prefix = {prefix}");
+        Debug.Assert(prefix.EndsWith("/"));
+        _abs_dir_prefix = prefix;
     }
 
-    public string GetDisplayString() {
-        string nicePath = NiceDirPath(DirPath);
-        if (nicePath != "") {
-            return nicePath + " | " + Name;
-        } else {
-            return Name;
-        }
+    public DirectoryEntry(string ending_path) {
+        this.ending_path = ending_path;
     }
 
-    private string NiceDirPath(string dirPath) {
-        // Don't show useless "./" for a relative path
-        if (dirPath.StartsWith("./")) {
-            return dirPath.Substring(2);
-        } else if (dirPath == ".") {
-            return "";
-        } else {
-            return dirPath;
-        }
+    public string GetDisplayString() => TextHelper.GetNiceFileDisplayString(ending_path);
+
+    public string GetChoiceString() {
+        return _abs_dir_prefix + ending_path;
     }
 
+    public string GetSearchString() => ending_path;
 }
 
 readonly record struct QueuedDirectory(string path, IgnoreModel ignores);
@@ -69,48 +46,49 @@ class DirectoryExplorer
     private int nr_files = 0;
     private int nr_dirs = 0;
     private int nr_ignored = 0;
-    private string rootPath;
-    private EventQueue<Notification> loadEvent;
+    private string rootAbsPath;
+    private EventQueue<Notification> m_notifications;
+    private Config m_config;
 
-    public DirectoryExplorer(string rootPath, EventQueue<Notification> loadEvent) {
-        this.rootPath = rootPath;
-        this.loadEvent = loadEvent;
+    public DirectoryExplorer(Config config, string rootPath, EventQueue<Notification> notifications) {
+        rootAbsPath = Path.GetFullPath(rootPath);
+        if (!rootAbsPath.EndsWith("/")) {
+            rootAbsPath += "/";
+        }
+        m_notifications = notifications;
+        m_config = config;
     }
 
-    public IEnumerable<IScrollItem> Scan()
+    public IEnumerable<ISelectableItem> Scan()
     {
-        Log.Info($"ScanDirectory: {rootPath}");
-        var initialIgnorer = new IgnoreModel(rootPath);
+        Log.Info($"ScanDirectory: rootAbsPath={rootAbsPath}");
+        DirectoryEntry.SetRootPrefix(rootAbsPath);
+        var initialIgnorer = new IgnoreModel(rootAbsPath, m_config.GitIgnoresEnabled);
+
         List<DirectoryEntry> entries = new();
-
-	// Make the initial root path less ugly
-        // The rest we have to clean up during display
-        while (rootPath.EndsWith("//")) {
-            rootPath = rootPath.Substring(0, rootPath.Length - 1);
-        }
-
-        Log.Info($"ScanDirectory: normalized={rootPath}");
-        dir_queue.Enqueue(new QueuedDirectory(rootPath, initialIgnorer));
+        dir_queue.Enqueue(new QueuedDirectory(rootAbsPath, initialIgnorer));
 
         while (dir_queue.Count > 0) {
             QueuedDirectory context = dir_queue.Dequeue();
-            string dirPath = context.path;
+            string dirAbsPath = context.path;
             IgnoreModel ignores = context.ignores;
+            Debug.Assert(dirAbsPath.EndsWith("/"));
+            Debug.Assert(dirAbsPath.StartsWith(rootAbsPath));
 
             // See if there is a new .gitignore file to load, before listing files/dirs
-            string newGitIgnoreFile = dirPath + "/.gitignore";
-            if (File.Exists(newGitIgnoreFile) && dirPath != rootPath) {
+            string newGitIgnoreFile = dirAbsPath + "/.gitignore";
+            if (File.Exists(newGitIgnoreFile) && dirAbsPath != rootAbsPath && m_config.GitIgnoresEnabled) {
                 ignores = new IgnoreModel(newGitIgnoreFile, context.ignores);
             }
 
             string[]? allFiles = null;
             try {
-                //Log.Debug($"reading files in {dirPath}");
-                allFiles = Directory.GetFiles(dirPath);
+                //Log.Info($"reading files in {dirAbsPath}");
+                allFiles = Directory.GetFiles(dirAbsPath);
             } catch (System.UnauthorizedAccessException e) {
                 Log.Info($"Caught: {e}");
                 // Fatal error if we can't access the root path
-                if (dirPath == rootPath) {
+                if (dirAbsPath == rootAbsPath) {
                     throw;
                 }
             }
@@ -122,10 +100,7 @@ class DirectoryExplorer
                         continue;
                     }
                     //Log.Info($"read file {f}");
-                    var dentry = new DirectoryEntry {
-                            DirPath= dirPath,
-                            Name= Path.GetFileName(f)
-                    };
+                    var dentry = new DirectoryEntry(f.Substring(rootAbsPath.Length));
                     entries.Add(dentry);
 
                     nr_files++;
@@ -137,8 +112,8 @@ class DirectoryExplorer
 
             string[]? allDirs = null;
             try {
-                //Log.Debug($"reading dirs in {dirPath}");
-                allDirs = Directory.GetDirectories(dirPath);
+                //Log.Debug($"reading dirs in {dirAbsPath}");
+                allDirs = Directory.GetDirectories(dirAbsPath);
             } catch (System.UnauthorizedAccessException e) {
                 Log.Info($"Caught: {e}");
             }
@@ -146,10 +121,16 @@ class DirectoryExplorer
                 SortStrings(allDirs);
                 // Dirs, need to be queued.
                 // It'also nice seeing a BFS tree growing down and to the right in the UX.
-                foreach (string d in allDirs) {
-                    // Ensure we match a rule like 'node_modules/'
-                    if (ignores.IsIgnored(d + "/")) {
+                foreach (string origDir in allDirs) {
+                    // Ensure we match a gitignore rule like 'node_modules/'
+                    // Also this loop require all dirs to end with /
+                    var d = (origDir.EndsWith("/") ? origDir : origDir + "/");
+                    if (ignores.IsIgnored(d)) {
                         nr_ignored++;
+                        continue;
+                    }
+                    if (IsSymbolicLink(d)) {
+                        Log.Info($"Not following symlink {d}");
                         continue;
                     }
                     //Log.Info($"read dir {d}");
@@ -159,9 +140,6 @@ class DirectoryExplorer
                     if ((nr_dirs % DIRS_PROGRESS) == 0) {
                         ShowProgress();
                     }
-
-                    // Don't think we need to care about showing empty dirs.
-                    // We can still create a folder structure easily from the file data.
                 }
             }
         }
@@ -172,11 +150,16 @@ class DirectoryExplorer
 
     private void ShowProgress() {
         var progress = new Notification(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
-        loadEvent.AddEvent(progress);
+        m_notifications.AddEvent(progress);
     }
 
     private void SortStrings(string[] arr) {
         Array.Sort(arr);
+    }
+
+    static private bool IsSymbolicLink(string path) {
+        FileInfo pathInfo = new FileInfo(path);
+        return pathInfo.Attributes.HasFlag(System.IO.FileAttributes.ReparsePoint);
     }
 
 }

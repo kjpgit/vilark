@@ -64,6 +64,18 @@ class TextHelper
         return false;
     }
 
+    public static string GetNiceFileDisplayString(string s) {
+        // "1. some/dir/file.txt" -> "1. some/dir | file.txt"
+        int splitPos = s.LastIndexOf('/');
+        if (splitPos > 0 && !s.EndsWith("/")) {
+            string dirPart = s.Substring(0, splitPos);
+            string filePart = s.Substring(splitPos+1);
+            return dirPart + " | " + filePart;
+        } else {
+            return s;
+        }
+    }
+
 }
 
 

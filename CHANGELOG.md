@@ -1,5 +1,10 @@
 # ViLark Changelog
 
+## 2023.9.11 (Version 1.6)
+* Don't follow directory symlinks, because it often causes infinite loops
+* Show count on main screen (can be disabled in config)
+* Fix .gitignore rules wrongly flagging a parent directory component
+
 ## 2023.9.10 (Version 1.5)
 * "Zero-Lag" Fast switch ability, using HTTP listener socket to respond to a file
   selection request from the vim plugin.  It means you only load a large

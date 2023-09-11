@@ -24,13 +24,13 @@ class OutputModel
     // Write the chosen selection (even if it is empty), to the output file.
     // Truncate the file to empty if nothing was chosen.
     // Do nothing if VILARK_OUTPUT_FILE is not set.
-    public void WriteOutput(IScrollItem? chosenItem) {
+    public void WriteOutput(ISelectableItem? chosenItem) {
         var outFileName = GetOutputFile();
         if (outFileName != null) {
             // Use FileMode.Create so the file is truncated if it exists.
             using (var fs = new FileStream(outFileName, FileMode.Create)) {
                 if (chosenItem != null) {
-                    var s = chosenItem.GetSelectionString();
+                    var s = chosenItem.GetChoiceString();
                     Log.Info($"Chosen item: [{s}]");
                     fs.Write(System.Text.Encoding.UTF8.GetBytes(s));
                 } else {
@@ -41,10 +41,10 @@ class OutputModel
     }
 
     // Launch a process, but only if something was chosen, and an editor is set.
-    public void LaunchEditor(IScrollItem? chosenItem, EventQueue<Notification> loadingEvent) {
+    public void LaunchEditor(ISelectableItem? chosenItem, EventQueue<Notification> loadingEvent) {
         var editorCommand = GetEditorCommand();
         if (editorCommand != null && chosenItem != null) {
-            var s = chosenItem.GetSelectionString();
+            var s = chosenItem.GetChoiceString();
             Log.Info($"Launching EDITOR {m_config.EditorLaunchMode} {editorCommand} {s}");
             string shortName = Path.GetFileName(editorCommand);
             string[] args = { shortName, s };

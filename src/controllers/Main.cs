@@ -41,7 +41,7 @@ class Controller
         m_options_model = optionsModel;
 
         m_config = new();
-        m_input_model = new(optionsModel, m_notifications);
+        m_input_model = new(optionsModel, m_config, m_notifications);
         m_output_model = new(m_config);
 
         // Views
@@ -183,7 +183,7 @@ class Controller
         UpdateSearchModel();
     }
 
-    private void OnItemChosen(object? sender, IScrollItem item) {
+    private void OnItemChosen(object? sender, ISelectableItem item) {
         DoChosenItem(item);
     }
 
@@ -192,6 +192,7 @@ class Controller
         var data = m_input_model.FilteredData;
         if (data != null) {
             m_main_tab.m_scrollview.SetContentLines(data);
+            m_main_tab.m_searchbar.TotalCount = data.Count();
         }
     }
 
@@ -315,7 +316,7 @@ class Controller
         Environment.Exit(0);
     }
 
-    private void DoChosenItem(IScrollItem item) {
+    private void DoChosenItem(ISelectableItem item) {
         Log.Info("An item was chosen.");
 
         // This will either:
@@ -323,7 +324,7 @@ class Controller
         // b. Process.Start() and wait for child process to exit
         if (m_output_model.GetEditorCommand() != null) {
             if (m_web_request_running) {
-                var fullPath = Path.GetFullPath(item.GetSelectionString());
+                var fullPath = Path.GetFullPath(item.GetChoiceString());
                 m_web_replies.AddEvent(fullPath);
                 m_web_request_running = false;
             } else {
