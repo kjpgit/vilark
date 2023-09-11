@@ -28,24 +28,26 @@ class OptionsTab: IView
             _ => throw new Exception("unknown FuzzySearchMode"),
         };
         drawListSelector(ctx, tabIndex++, "", label);
+        ctx.DrawRow("");
 
-        ctx.DrawRow("  How to start an $EDITOR process:");
+        ctx.DrawRow("  How to start a Vim ($EDITOR) process:");
         label = m_config.EditorLaunchMode switch {
             EditorLaunchMode.EDITOR_LAUNCH_REPLACE => "Replace current process",
             EditorLaunchMode.EDITOR_LAUNCH_CHILD => "Start a child process",
             _ => throw new Exception("unknown EditorLaunchMode"),
         };
         drawListSelector(ctx, tabIndex++, "", label);
+        ctx.DrawRow("");
 
-        ctx.DrawRow("  When fast switching back to this screen, from the vim plugin:");
+        ctx.DrawRow("  When Zero-Lag UX switching, from the Vim plugin:");
         label = m_config.FastSwitchSearch switch {
             FastSwitchSearch.FAST_CLEAR_SEARCH => "Clear the search box text",
             FastSwitchSearch.FAST_PRESERVE_SEARCH => "Preserve the search box text",
             _ => throw new Exception("unknown FastSwitchSearch"),
         };
         drawListSelector(ctx, tabIndex++, "", label);
-
         ctx.DrawRow("");
+
         var fgTexts = new DisplayText[] {
             new DisplayText("  Selection Color (Foreground)   |"),
             new DisplayText("       ", bgColor:selectionFGColor),
@@ -57,8 +59,8 @@ class OptionsTab: IView
         drawSlider(ctx, tabIndex++, "R", selectionFGColor.r);
         drawSlider(ctx, tabIndex++, "G", selectionFGColor.g);
         drawSlider(ctx, tabIndex++, "B", selectionFGColor.b);
-
         ctx.DrawRow("");
+
         var bgTexts = new DisplayText[] {
             new DisplayText("  Selection Color (Background)   |"),
             new DisplayText("       ", bgColor:selectionBGColor),
@@ -70,8 +72,8 @@ class OptionsTab: IView
         drawSlider(ctx, tabIndex++, "R", selectionBGColor.r);
         drawSlider(ctx, tabIndex++, "G", selectionBGColor.g);
         drawSlider(ctx, tabIndex++, "B", selectionBGColor.b);
-
         ctx.DrawRow("");
+
         ctx.DrawRow("  ~~ Note: Use j/k/h/l to adjust ~~");
 
         while (ctx.usedRows < Size.height) {
