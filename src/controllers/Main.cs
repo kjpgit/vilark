@@ -297,7 +297,7 @@ class Controller
             Redraw();
         }
         if (notification.WebRequest != null) {
-            Log.Info("taking over again");
+            Log.Info("Fast switching to our UX, for IPC request");
             m_web_request_running = true;
             if (m_config.FastSwitchSearch == FastSwitchSearch.FAST_CLEAR_SEARCH) {
                 m_main_tab.m_searchbar.ClearSearch();
