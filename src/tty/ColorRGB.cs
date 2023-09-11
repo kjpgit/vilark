@@ -40,8 +40,8 @@ class ColorRGB
     public int g;
     public int b;
 
-    public void AdjustR(int delta) { r = Math.Clamp(r+delta, 0, 255); }
-    public void AdjustG(int delta) { g = Math.Clamp(g+delta, 0, 255); }
-    public void AdjustB(int delta) { b = Math.Clamp(b+delta, 0, 255); }
+    public void AdjustR(int delta) { r = Math.Clamp(r+delta*10, 0, 255); }
+    public void AdjustG(int delta) { g = Math.Clamp(g+delta*10, 0, 255); }
+    public void AdjustB(int delta) { b = Math.Clamp(b+delta*10, 0, 255); }
 }
 

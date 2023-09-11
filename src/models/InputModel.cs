@@ -2,22 +2,18 @@
 namespace vilark;
 
 
-record struct LoadProgressInfo(int? Processed = null, int? Ignored = null,
-        IEnumerable<IScrollItem>? CompletedData = null,
-        string? ErrorMessage = null);
-
 class InputModel
 {
     private IEnumerable<IScrollItem>? _data = null;
     private IEnumerable<IScrollItem>? _filtered_data = null;
     private Thread? _load_thread = null;
     private OptionsModel m_options;
-    private EventQueue<LoadProgressInfo> m_load_event;
+    private EventQueue<Notification> m_load_event;
 
     // This is null when we are still loading
     public IEnumerable<IScrollItem>? FilteredData => _filtered_data;
 
-    public InputModel(OptionsModel options, EventQueue<LoadProgressInfo> loadEvent) {
+    public InputModel(OptionsModel options, EventQueue<Notification> loadEvent) {
         m_options = options;
         m_load_event = loadEvent;
     }
@@ -33,9 +29,9 @@ class InputModel
     private void LoadInput(string selectedDirectory) {
         try {
             var entries = LoadInputImpl(selectedDirectory);
-            m_load_event.AddEvent(new LoadProgressInfo(CompletedData: entries));
+            m_load_event.AddEvent(new Notification(CompletedData: entries));
         } catch (Exception e) {
-            m_load_event.AddEvent(new LoadProgressInfo(ErrorMessage: e.ToString()));
+            m_load_event.AddEvent(new Notification(ErrorMessage: e.ToString()));
         }
     }
 

@@ -1,5 +1,16 @@
 # ViLark Changelog
 
+## 2023.9.10 (Version 1.5)
+* "Zero-Lag" Fast switch ability, using HTTP listener socket to respond to a file
+  selection request from the vim plugin.  It means you only load a large
+  directory tree (and process ignore rules) one time.
+
+## 2023.9.10 (Version 1.4)
+* Ability to launch $EDITOR as a child process (this is the new default)
+* Sort files/dirs by name
+* Big cleanup of tty and signal code.  No flicker, better handling of ctrl-z and
+  alternate screen
+
 ## 2023.9.9 (Version 1.3)
 * Async file scanning during startup, with progress spinner
 * Can ctrl-c/ctrl-z during initial file scan

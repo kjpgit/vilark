@@ -3,8 +3,6 @@ using System.Text;
 
 namespace vilark;
 
-enum FuzzySearchMode { FUZZY_WORD_ORDERED, FUZZY_WORD_UNORDERED }
-
 class FuzzyTextQuery
 {
     private FuzzySearchMode mode;

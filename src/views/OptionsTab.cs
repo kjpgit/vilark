@@ -7,27 +7,43 @@ class OptionsTab: IView
 
     Config m_config;
     private int selectedIndex = 0;
-    const int numControls = 7;
+    const int numControls = 9;
 
     public OptionsTab(Config config) {
         m_config = config;
     }
 
-    private FuzzySearchMode FuzzySearchMode => m_config.FuzzySearchMode;
     private ColorRGB selectionFGColor => m_config.SelectionFGColor;
     private ColorRGB selectionBGColor => m_config.SelectionBGColor;
 
     public override void Draw(Console console) {
         Log.Info($"drawing options {Size}");
         var ctx = new DrawContext(this, console);
+        int tabIndex = 0;
 
         ctx.DrawRow("  When multiple search words are used:");
-        string searchLabel = FuzzySearchMode switch {
+        string label = m_config.FuzzySearchMode switch {
             FuzzySearchMode.FUZZY_WORD_ORDERED => "Match exact order",
             FuzzySearchMode.FUZZY_WORD_UNORDERED => "Match any order",
             _ => throw new Exception("unknown FuzzySearchMode"),
         };
-        drawListSelector(ctx, 0, "", searchLabel);
+        drawListSelector(ctx, tabIndex++, "", label);
+
+        ctx.DrawRow("  How to start an $EDITOR process:");
+        label = m_config.EditorLaunchMode switch {
+            EditorLaunchMode.EDITOR_LAUNCH_REPLACE => "Replace current process",
+            EditorLaunchMode.EDITOR_LAUNCH_CHILD => "Start a child process",
+            _ => throw new Exception("unknown EditorLaunchMode"),
+        };
+        drawListSelector(ctx, tabIndex++, "", label);
+
+        ctx.DrawRow("  When fast switching back to this screen, from the vim plugin:");
+        label = m_config.FastSwitchSearch switch {
+            FastSwitchSearch.FAST_CLEAR_SEARCH => "Clear the search box text",
+            FastSwitchSearch.FAST_PRESERVE_SEARCH => "Preserve the search box text",
+            _ => throw new Exception("unknown FastSwitchSearch"),
+        };
+        drawListSelector(ctx, tabIndex++, "", label);
 
         ctx.DrawRow("");
         var fgTexts = new DisplayText[] {
@@ -38,9 +54,9 @@ class OptionsTab: IView
         };
         ctx.DrawRow(fgTexts);
 
-        drawSlider(ctx, 1, "R", selectionFGColor.r);
-        drawSlider(ctx, 2, "G", selectionFGColor.g);
-        drawSlider(ctx, 3, "B", selectionFGColor.b);
+        drawSlider(ctx, tabIndex++, "R", selectionFGColor.r);
+        drawSlider(ctx, tabIndex++, "G", selectionFGColor.g);
+        drawSlider(ctx, tabIndex++, "B", selectionFGColor.b);
 
         ctx.DrawRow("");
         var bgTexts = new DisplayText[] {
@@ -51,9 +67,9 @@ class OptionsTab: IView
         };
         ctx.DrawRow(bgTexts);
 
-        drawSlider(ctx, 4, "R", selectionBGColor.r);
-        drawSlider(ctx, 5, "G", selectionBGColor.g);
-        drawSlider(ctx, 6, "B", selectionBGColor.b);
+        drawSlider(ctx, tabIndex++, "R", selectionBGColor.r);
+        drawSlider(ctx, tabIndex++, "G", selectionBGColor.g);
+        drawSlider(ctx, tabIndex++, "B", selectionBGColor.b);
 
         ctx.DrawRow("");
         ctx.DrawRow("  ~~ Note: Use j/k/h/l to adjust ~~");
@@ -97,9 +113,9 @@ class OptionsTab: IView
         }
         if (kp.rune != null) {
             if (kp.IsRune('[') || kp.IsRune('h')) {
-                GetAdjuster()(-10);
+                GetAdjuster()(-1);
             } else if (kp.IsRune(']') || kp.IsRune('l')) {
-                GetAdjuster()(10);
+                GetAdjuster()(1);
             }
         }
     }
@@ -115,23 +131,29 @@ class OptionsTab: IView
     private Action<int> GetAdjuster() {
         return selectedIndex switch {
             0 => AdjustSearchMode,
-            1 => selectionFGColor.AdjustR,
-            2 => selectionFGColor.AdjustG,
-            3 => selectionFGColor.AdjustB,
-            4 => selectionBGColor.AdjustR,
-            5 => selectionBGColor.AdjustG,
-            6 => selectionBGColor.AdjustB,
+            1 => AdjustEditorLaunchMode,
+            2 => AdjustFastSwitchSearch,
+            3 => selectionFGColor.AdjustR,
+            4 => selectionFGColor.AdjustG,
+            5 => selectionFGColor.AdjustB,
+            6 => selectionBGColor.AdjustR,
+            7 => selectionBGColor.AdjustG,
+            8 => selectionBGColor.AdjustB,
             _ => (int x) => { }
         };
     }
 
     private void AdjustSearchMode(int delta) {
-        if (FuzzySearchMode == FuzzySearchMode.FUZZY_WORD_ORDERED) {
-            m_config.FuzzySearchMode = FuzzySearchMode.FUZZY_WORD_UNORDERED;
-        } else {
-            m_config.FuzzySearchMode = FuzzySearchMode.FUZZY_WORD_ORDERED;
-        }
+        m_config.FuzzySearchMode = m_config.FuzzySearchMode.IncrementEnum(delta);
         SearchModeChanged?.Invoke(this, true);
+    }
+
+    private void AdjustEditorLaunchMode(int delta) {
+        m_config.EditorLaunchMode = m_config.EditorLaunchMode.IncrementEnum(delta);
+    }
+
+    private void AdjustFastSwitchSearch(int delta) {
+        m_config.FastSwitchSearch = m_config.FastSwitchSearch.IncrementEnum(delta);
     }
 
 }

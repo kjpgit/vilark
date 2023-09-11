@@ -46,6 +46,13 @@ class SearchBar: IView
         SearchChanged?.Invoke(this, true);
     }
 
+    public void ClearSearch() {
+        if (searchText != "") {
+            searchText = "";
+            SearchChanged?.Invoke(this, true);
+        }
+    }
+
     override public void UpdateCursor(Console console) {
         if (IsVisible) {
             console.SetCursorXY(cursorPos, 0, Size);

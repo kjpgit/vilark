@@ -6,7 +6,7 @@ namespace vilark;
 class LoadingView: IView
 {
     public const int RedrawMilliseconds = 250;
-    public LoadProgressInfo CurrentData = new LoadProgressInfo();
+    public Notification CurrentData = new Notification();
     private string[] spinners = { "-", "\\", "|", "/" };
 
     private string GetCurrentSpinner() {

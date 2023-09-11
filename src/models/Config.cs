@@ -3,8 +3,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace vilark;
 
+enum FuzzySearchMode { FUZZY_WORD_ORDERED, FUZZY_WORD_UNORDERED }
+enum EditorLaunchMode { EDITOR_LAUNCH_REPLACE, EDITOR_LAUNCH_CHILD }
+enum FastSwitchSearch { FAST_PRESERVE_SEARCH, FAST_CLEAR_SEARCH }
+
 record ConfigJson {
     public string? FuzzySearchMode;
+    public string? EditorLaunchMode;
+    public string? FastSwitchSearch;
     public string? SelectionFGColor;
     public string? SelectionBGColor;
 }
@@ -12,14 +18,14 @@ record ConfigJson {
 // For AOT support
 [JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true)]
 [JsonSerializable(typeof(ConfigJson))]
-internal partial class SourceGenerationContext : JsonSerializerContext
-{
-}
+internal partial class SourceGenerationContext : JsonSerializerContext { }
 
 class Config
 {
     // Defaults, override in config
     public FuzzySearchMode FuzzySearchMode = FuzzySearchMode.FUZZY_WORD_ORDERED;
+    public EditorLaunchMode EditorLaunchMode = EditorLaunchMode.EDITOR_LAUNCH_CHILD;
+    public FastSwitchSearch FastSwitchSearch = FastSwitchSearch.FAST_PRESERVE_SEARCH;
     public ColorRGB SelectionFGColor = ColorRGB.FromString("rgb(10,30,50)");
     public ColorRGB SelectionBGColor = ColorRGB.FromString("rgb(222,236,249)");
 
@@ -29,11 +35,11 @@ class Config
 
     public static string? GetSettingsFile() {
         var f = Environment.GetEnvironmentVariable("VILARK_SETTINGS_FILE");
-        if (f != null) {
+        if (!String.IsNullOrEmpty(f)) {
             return f;
         }
         var home = Environment.GetEnvironmentVariable("HOME");
-        if (home != null) {
+        if (!String.IsNullOrEmpty(home)) {
             string stdPath = home + "/.config/vilark/settings.json";
             return stdPath;
         }
@@ -56,6 +62,13 @@ class Config
         if (config.FuzzySearchMode != null) {
             FuzzySearchMode = (FuzzySearchMode)Enum.Parse(FuzzySearchMode.GetType(), config.FuzzySearchMode);
         }
+        if (config.EditorLaunchMode != null) {
+            EditorLaunchMode = (EditorLaunchMode)Enum.Parse(EditorLaunchMode.GetType(), config.EditorLaunchMode);
+        }
+        if (config.FastSwitchSearch != null) {
+            FastSwitchSearch = (FastSwitchSearch)Enum.Parse(FastSwitchSearch.GetType(), config.FastSwitchSearch);
+        }
+
         if (config.SelectionFGColor != null) {
             SelectionFGColor = ColorRGB.FromString(config.SelectionFGColor);
         }
@@ -72,6 +85,8 @@ class Config
 
         var settings = new ConfigJson() {
             FuzzySearchMode = this.FuzzySearchMode.ToString(),
+            EditorLaunchMode = this.EditorLaunchMode.ToString(),
+            FastSwitchSearch = this.FastSwitchSearch.ToString(),
             SelectionFGColor = this.SelectionFGColor.ToString(),
             SelectionBGColor = this.SelectionBGColor.ToString()
         };
