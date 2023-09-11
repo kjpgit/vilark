@@ -70,9 +70,9 @@ class DirectoryExplorer
     private int nr_dirs = 0;
     private int nr_ignored = 0;
     private string rootPath;
-    private EventQueue<LoadProgressInfo> loadEvent;
+    private EventQueue<Notification> loadEvent;
 
-    public DirectoryExplorer(string rootPath, EventQueue<LoadProgressInfo> loadEvent) {
+    public DirectoryExplorer(string rootPath, EventQueue<Notification> loadEvent) {
         this.rootPath = rootPath;
         this.loadEvent = loadEvent;
     }
@@ -115,6 +115,7 @@ class DirectoryExplorer
                 }
             }
             if (allFiles != null) {
+                SortStrings(allFiles);
                 foreach (string f in allFiles) {
                     if (ignores.IsIgnored(f)) {
                         nr_ignored++;
@@ -142,6 +143,7 @@ class DirectoryExplorer
                 Log.Info($"Caught: {e}");
             }
             if (allDirs != null) {
+                SortStrings(allDirs);
                 // Dirs, need to be queued.
                 // It'also nice seeing a BFS tree growing down and to the right in the UX.
                 foreach (string d in allDirs) {
@@ -169,8 +171,12 @@ class DirectoryExplorer
     }
 
     private void ShowProgress() {
-        var progress = new LoadProgressInfo(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
+        var progress = new Notification(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
         loadEvent.AddEvent(progress);
+    }
+
+    private void SortStrings(string[] arr) {
+        Array.Sort(arr);
     }
 
 }

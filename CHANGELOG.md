@@ -1,5 +1,11 @@
 # ViLark Changelog
 
+## 2023.9.10 (Version 1.4)
+* Ability to launch $EDITOR as a child process (this is the new default)
+* Sort files/dirs by name
+* Big cleanup of tty and signal code.  No flicker, better handling of ctrl-z and
+  alternate screen
+
 ## 2023.9.9 (Version 1.3)
 * Async file scanning during startup, with progress spinner
 * Can ctrl-c/ctrl-z during initial file scan

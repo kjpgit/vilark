@@ -82,21 +82,24 @@ class UnixProcess
         throw new Exception("Error: native execve failed for {fullPath}");
     }
 
-    /*
-    static public void ExecManaged(string program, string[] args, string[] envs) {
-        UnregisterSignals();
-        RunTerminalReset();
+    // Use the standard .Net runtime to launch a child process.
+    // When it finishes, send an event to the loadingEvent queue.
+    static public void StartChild(string program, string[] args,
+                    EventQueue<Notification> loadingEvent) {
+        //UnregisterSignals();
+        //RunTerminalReset();
         var pi = new ProcessStartInfo(program);
-        foreach (var arg in args.Skip(1)) {
-            pi.ArgumentList.Add(arg);
-        }
+        pi.ArgumentList.Add(args[1]);
         var p = Process.Start(pi);
         if (p != null) {
-            //Environment.Exit(1);
-            p.WaitForExit();
-            Log.Info($"exec process finished: {p.ExitCode}");
+            Task.Run(() => {
+                    p.WaitForExit();
+                    Log.Info($"exec process finished: {p.ExitCode}");
+                    loadingEvent.AddEvent(new Notification(ChildExited: true));
+                });
         } else {
             Log.Info("exec process didn't start");
+            throw new Exception($"Couldn't start {program}");
         }
     }
 
@@ -106,7 +109,6 @@ class UnixProcess
         }
         _signal_registrations.Clear();
     }
-    */
 
     public static string[] GetCurrentEnvs() {
         List<string> ret = new();

@@ -20,33 +20,56 @@ python3 << __python_vimcode_end__
 import os
 import subprocess
 import tempfile
+import urllib.request
 import vim
 
 # Either put vilark in your $PATH, or export VILARK=/path/to/vilark
 g_vilark_cmd = os.environ.get("VILARK", "vilark")
 # For any bug reports: :python3 print(g_vilark_plugin_version)
-g_vilark_plugin_version = "1.1"
+g_vilark_plugin_version = "1.5"
 
-def ViLark_BrowseCurrentDirectory():
+def ViLark_BrowseCurrentDirectory(edit_in_new_tab=False):
+    VILARK_IPC_URL = os.environ.get("VILARK_IPC_URL", "")
+    if VILARK_IPC_URL:
+        # A parent ViLark process is already running, switch to its UX for a selection
+        try:
+            with urllib.request.urlopen(VILARK_IPC_URL + "/getfile") as response:
+               body = response.read()
+               chosen_file = body.decode("utf-8")
+        except Exception as e:
+            vim.command("redraw!")
+            print("ViLark IPC Error: " + str(e))
+        else:
+            vim.command("redraw!")
+            _vilark_internal_open(chosen_file, edit_in_new_tab)
+        return
+
+    # Run ViLark and wait for it to finish.
+    # If the user chooses a file, it will be written to $VILARK_OUTPUT_FILE
+    # as utf8 bytes, no newline at the end.
+    # If the user doesn't choose a file, it will be empty.
     with tempfile.NamedTemporaryFile(mode="w", suffix=".vilarktmp") as tmp:
         vilark_env = os.environ.copy()
         vilark_env["VILARK_OUTPUT_FILE"] = tmp.name
         vilark_env["EDITOR"] = ""
 
-        # Run ViLark and wait for it to finish.
-        # If the user chooses a file, it will be written to $VILARK_OUTPUT_FILE
-        # as utf8 bytes, no newline at the end.
-        # If the user doesn't choose a file, it will be empty.
         ret = subprocess.run([g_vilark_cmd, "."], env=vilark_env, check=True)
-        vim.command("redraw!")
         chosen_file = open(tmp.name).read()
-        if chosen_file:
-            # Be cautious about printing, because a long file name (2+ lines)
-            # causes vim to show a 'press enter to continue' blurb.
-            #print(f"ViLark: Selected file is {chosen_file}")
-            vim.command(f"ViLarkSafeEdit {chosen_file}")
+        _vilark_internal_open(chosen_file, edit_in_new_tab)
+
+
+def _vilark_internal_open(chosen_file, edit_in_new_tab):
+    # Be cautious about print(), because a long file name (2+ lines)
+    # causes vim to show a 'press enter to continue' blurb.
+    #print(f"ViLark: Selected file is {chosen_file}")
+    vim.command("redraw!")
+    if not chosen_file:
+        print("ViLark: Select was canceled")
+    else:
+        if edit_in_new_tab:
+            vim.command(f"ViLarkSafeTabEdit {chosen_file}")
         else:
-            print("ViLark: Select was canceled")
+            vim.command(f"ViLarkSafeEdit {chosen_file}")
 
 
 def ViLark_BrowseCurrentBuffers():
@@ -78,4 +101,5 @@ def ViLark_BrowseCurrentBuffers():
 __python_vimcode_end__
 
 " Work around for fnameescape not being directly exposed to python
-command -nargs=1 ViLarkSafeEdit execute 'edit' fnameescape(<f-args>)
+command! -nargs=1 ViLarkSafeEdit execute 'edit' fnameescape(<f-args>)
+command! -nargs=1 ViLarkSafeTabEdit execute 'tabedit' fnameescape(<f-args>)

@@ -22,9 +22,9 @@ class Console
     }
 
     // ANSI Erase in Display
-    public void ClearScreen() {
-        Write("\x1b[2J"u8);
-    }
+    /*
+    public void ClearScreen() { Write("\x1b[2J"u8); }
+    */
 
     public void ResetTextAttrs() {
         Write("\x1b[0m"u8);
