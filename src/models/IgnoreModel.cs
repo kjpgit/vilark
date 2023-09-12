@@ -36,7 +36,7 @@ Library/
 
         var stdIgnoreFile = GetStandardIgnoreFile();
         if (stdIgnoreFile != null && File.Exists(stdIgnoreFile)) {
-            AddIgnoresFromFile(stdIgnoreFile, 0);
+            AddIgnoresFromFile(stdIgnoreFile, absDirPath.Length);
         }
 
         if (gitIgnoresEnabled) {
