@@ -64,9 +64,11 @@ class Controller
 
     public void Run(string[] args) {
         try {
-            // This causes a clear screen / flicker, so avoid doing it often
-            console.SetAlternateScreen(true);
-
+            // This causes a clear screen / flicker, so avoid doing it often.
+            // It also causes some settings to be saved, which is not always what we want.
+            if (!IsPreserveTerminal()) {
+                console.SetAlternateScreen(true);
+            }
             PrepareViews();
             Redraw();
             m_input_model.StartLoadingAsync();
@@ -86,7 +88,9 @@ class Controller
         console.SetCursorVisible(true);
         console.SetUnderline(false);
         console.ResetTextAttrs();
-        console.SetAlternateScreen(false);
+        if (!IsPreserveTerminal()) {
+            console.SetAlternateScreen(false);
+        }
         console.Flush();
     }
 
@@ -243,6 +247,7 @@ class Controller
         if (sig == PosixSignal.SIGWINCH || sig == PosixSignal.SIGCONT) {
             if (!m_child_process_running || m_web_request_running) {
                 if (sig == PosixSignal.SIGCONT) {
+                    // todo: would a non-clearing command be better here?
 		    console.SetAlternateScreen(true);
                 }
                 Redraw();
@@ -367,6 +372,11 @@ class Controller
             m_keyboard_paused.Set();
             m_keyboard_paused = null;
         }
+    }
+
+    private bool IsPreserveTerminal() {
+        var e = Environment.GetEnvironmentVariable("VILARK_PRESERVE_TERMINAL");
+        return (e != null && e != "0");
     }
 
 }

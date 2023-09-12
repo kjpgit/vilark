@@ -51,6 +51,7 @@ def ViLark_BrowseCurrentDirectory(edit_in_new_tab=False):
     # If the user doesn't choose a file, it will be empty.
     with tempfile.NamedTemporaryFile(mode="w", suffix=".vilarktmp") as tmp:
         vilark_env = os.environ.copy()
+        vilark_env["VILARK_PRESERVE_TERMINAL"] = "1"
         vilark_env["VILARK_OUTPUT_FILE"] = tmp.name
         vilark_env["EDITOR"] = ""
 
@@ -77,6 +78,7 @@ def ViLark_BrowseCurrentBuffers():
     with tempfile.NamedTemporaryFile(mode="w", suffix=".vilarktmp") as tmp_input, \
             tempfile.NamedTemporaryFile(mode="w", suffix=".vilarktmp") as tmp_output:
         vilark_env = os.environ.copy()
+        vilark_env["VILARK_PRESERVE_TERMINAL"] = "1"
         vilark_env["VILARK_INPUT_LABEL"] = "Buffers"
         vilark_env["VILARK_INPUT_DISPLAY"] = "DIR_BAR_FILE"  # For readability
         vilark_env["VILARK_INPUT_FILE"] = tmp_input.name
@@ -104,3 +106,10 @@ __python_vimcode_end__
 " Work around for fnameescape not being directly exposed to python
 command! -nargs=1 ViLarkSafeEdit execute 'edit' fnameescape(<f-args>)
 command! -nargs=1 ViLarkSafeTabEdit execute 'tabedit' fnameescape(<f-args>)
+
+" Make vim not mess with the terminal at all, when it's started as a child
+" process from vilark.  Vilark will restore to main screen when it exits.
+" These options come from ":help restorescreen"
+if !empty($VILARK_IPC_URL)
+    set t_ti= t_te=
+endif
