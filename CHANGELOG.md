@@ -1,5 +1,10 @@
 # ViLark Changelog
 
+## 2023.9.12 (Version 1.6.1)
+* Fix flickering on some terminals
+* Make child vim and vilark proceses not mess with the terminal,
+  only the parent process will restore to the "main screen" upon exit.
+
 ## 2023.9.11 (Version 1.6)
 * Don't follow directory symlinks, because it often causes infinite loops
 * Show count on main screen (can be disabled in config)

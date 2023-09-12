@@ -8,7 +8,7 @@ record struct SignalPayload(PosixSignal signal, EventWaitHandle doneProcessing);
 
 class ViLarkMain
 {
-    public const string VERSION = "1.6";
+    public const string VERSION = "1.6.1";
 
     static void Main(string[] args)
     {
