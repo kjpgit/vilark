@@ -9,6 +9,7 @@ python3 << __python_vimcode_end__
 #
 #
 #    nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>
+#    nnoremap <space>E :python3 ViLark_BrowseCurrentDirectory(edit_in_new_tab=True)<CR>
 #    nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>
 #
 #

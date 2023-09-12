@@ -89,6 +89,7 @@ echo "The vim plugin does not create any key bindings."
 echo "You must add them in your ~/.vimrc, according to your preferences.  Mine are:"
 echo
 echo "nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>"
+echo "nnoremap <space>E :python3 ViLark_BrowseCurrentDirectory(edit_in_new_tab=True)<CR>"
 echo "nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>"
 echo
 echo "We hope you enjoy using ViLark!"
