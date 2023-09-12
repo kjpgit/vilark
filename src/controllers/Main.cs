@@ -64,6 +64,9 @@ class Controller
 
     public void Run(string[] args) {
         try {
+            // This causes a clear screen / flicker, so avoid doing it often
+            console.SetAlternateScreen(true);
+
             PrepareViews();
             Redraw();
             m_input_model.StartLoadingAsync();
@@ -152,9 +155,6 @@ class Controller
         Log.Info("Redraw()");
         UpdateViewDimensions();
 
-        // Ensure we always draw on alternate screen.
-        console.SetAlternateScreen(true);
-
         // Hide cursor while redrawing
         console.SetCursorVisible(false);
 
@@ -242,6 +242,9 @@ class Controller
 
         if (sig == PosixSignal.SIGWINCH || sig == PosixSignal.SIGCONT) {
             if (!m_child_process_running || m_web_request_running) {
+                if (sig == PosixSignal.SIGCONT) {
+		    console.SetAlternateScreen(true);
+                }
                 Redraw();
             }
         }
