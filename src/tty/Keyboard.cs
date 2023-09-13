@@ -61,7 +61,7 @@ struct KeyPress
 
 class Keyboard
 {
-    public IEnumerable<KeyPress> GetKeyPress() {
+    public KeyPress GetKeyPress() {
         while (true) {
             var cki = System.Console.ReadKey(true);
             Log.Info($"readkey1 = {TextHelper.HumanEscapeChar(cki.KeyChar)} ({GetDebugString(cki)})");
@@ -70,12 +70,11 @@ class Keyboard
                 Log.Info($"readkey2 = {TextHelper.HumanEscapeChar(cki2.KeyChar)}");
                 // Probably an emoji.  Return it as a rune.
                 var rune = new Rune(cki.KeyChar, cki2.KeyChar);
-                yield return KeyPress.FromUnicodeScalar(rune.Value);
-                continue;
+                return KeyPress.FromUnicodeScalar(rune.Value);
             }
 
             if (cki.KeyChar != (char)0) {
-                yield return cki.KeyChar switch {
+                return cki.KeyChar switch {
                     (char)0x1b => KeyPress.FromKeyCode(ESCAPE),
                     (char)0x7f => KeyPress.FromKeyCode(BACKSPACE),
                     _ => KeyPress.FromUnicodeScalar(cki.KeyChar),
@@ -98,7 +97,7 @@ class Keyboard
                     ConsoleKey.Tab when ((cki.Modifiers & ConsoleModifiers.Shift) != 0) => BACKTAB,
                     _ => UNKNOWN,
                 };
-                yield return KeyPress.FromKeyCode(kc);
+                return KeyPress.FromKeyCode(kc);
             }
         }
     }

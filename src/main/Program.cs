@@ -8,11 +8,11 @@ record struct SignalPayload(PosixSignal signal, EventWaitHandle doneProcessing);
 
 class VilarkMain
 {
-    public const string VERSION = "1.6.1";
+    public const string VERSION = "1.6.2";
 
     static void Main(string[] args)
     {
-        Thread.CurrentThread.Name = "mainThread";
+        Thread.CurrentThread.Name = "MainThread";
         string? debugLogName = Environment.GetEnvironmentVariable("VILARK_DEBUG_LOG");
         string logLevel = Environment.GetEnvironmentVariable("VILARK_DEBUG_LOG_LEVEL") ?? "INFO";
 
@@ -34,9 +34,7 @@ class VilarkMain
         var optionsModel = new OptionsModel();
 
         // Options look ok, continue startup.
-        // Set up the UX and signal handlers.
-        var console = new vilark.Console();
-        var controller = new Controller(console, optionsModel);
+        var controller = new Controller(optionsModel);
 
         // Synchronization is important here.. one signal at a time is processed by main thread,
         // and we wait until it is done before returning to the runtime.
@@ -79,30 +77,8 @@ class VilarkMain
         // we're just a simple dialog so it's probably fine.
         UnixProcess.RegisterSignalHandler(PosixSignal.SIGINT, (context) => captureSignal(context, false));
 
-        // Read from keyboard/tty in a separate thread.
-        var keyboard = new Keyboard();
-        var consoleReadThread = new Thread(() => {
-                var doneProcessing = new EventWaitHandle(false, EventResetMode.AutoReset);
-                foreach (KeyPress kp in keyboard.GetKeyPress()) {
-                    controller.ExternalKeyboardInput(new KeypressPayload(kp, doneProcessing));
-                    doneProcessing.WaitOne();
-                }
-            });
-        consoleReadThread.Name = "consoleReadThread";
-        consoleReadThread.Start();
-
-        // For super fast IPC, without launching another process :-)
-        if (Environment.GetEnvironmentVariable("VILARK_IPC_URL") == null) {
-            var web = new WebListener(controller);
-            Environment.SetEnvironmentVariable("VILARK_IPC_URL", web.GetUrl());
-            var webThread = new Thread(() => {
-                    web.Run();
-                });
-            webThread.Name = "webThread";
-            webThread.Start();
-        } else {
-            Log.Info("VILARK_IPC_URL already set, not starting another web listener");
-        }
+        controller.StartKeyboard();
+        controller.StartIPC();
 
         // Run eventloop
         controller.Run(args);

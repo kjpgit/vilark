@@ -149,8 +149,9 @@ class DirectoryExplorer
     }
 
     private void ShowProgress() {
-        var progress = new Notification(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
-        m_notifications.AddEvent(progress);
+        var progress = new LoadingProgress(Processed: nr_files + nr_dirs, Ignored: nr_ignored);
+        var notification = new Notification(LoadingProgress: progress);
+        m_notifications.AddEvent(notification);
     }
 
     private void SortStrings(string[] arr) {

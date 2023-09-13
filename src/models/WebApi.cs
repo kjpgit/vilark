@@ -1,16 +1,17 @@
 // Copyright (C) 2023 Karl Pickett / Vilark Project
+using System.Diagnostics;
 using System.Net;
 namespace vilark;
 
 class WebListener
 {
-    private Controller m_controller;
     private HttpListener m_listener;
     private string m_url;
+    private HttpListenerContext? m_context = null;
 
     public string GetUrl() => m_url;
 
-    public WebListener(Controller c) {
+    public WebListener() {
         for (int port = 61980; port < 63000; port++) {
             string url = $"http://localhost:{port}/";
             HttpListener listener = new HttpListener();
@@ -27,42 +28,34 @@ class WebListener
             m_url = url;
             break;
         }
-        m_controller = c;
         if (m_listener == null || m_url == null) {
             throw new Exception("Unable to find free HTTP port");
         }
     }
 
-    public void Run() {
-        Log.Info("Waiting for requests...");
-        while (true) {
-            DoRequest(m_listener);
-        }
-    }
-
-    private void DoRequest(HttpListener listener) {
+    public string GetRequest() {
+        Log.Info("Waiting for request...");
         // Note: The GetContext method blocks while waiting for a request.
-        HttpListenerContext context = listener.GetContext();
+        m_context = m_listener.GetContext();
 
         // Todo: parse request if there are different types
-        HttpListenerRequest request = context.Request;
-        HttpListenerResponse response = context.Response;
+        HttpListenerRequest request = m_context.Request;
 
-        // Tell the main thread
-        m_controller.m_notifications.AddEvent(new Notification(WebRequest: "getfile"));
+        return "getfile";  // only one request type for now
+    }
 
-        // Wait for the user to make a choice
-        m_controller.m_web_replies.ConsumerWaitHandle.WaitOne();
-        var choice = m_controller.m_web_replies.TakeEvent();
+    public void SendResponse(string responseString) {
+        Trace.Assert(m_context != null);
 
-        // Construct a response.
-        string responseString = $"{choice}";
-        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-        // Get a response stream and write the response to it.
-        response.ContentLength64 = buffer.Length;
+        byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes(responseString);
+
+        HttpListenerResponse response = m_context.Response;
+        response.ContentLength64 = responseBytes.Length;
         Stream output = response.OutputStream;
-        output.Write(buffer, 0, buffer.Length);
+        output.Write(responseBytes, 0, responseBytes.Length);
         // You must close the output stream.
         output.Close();
+        m_context = null;
     }
+
 }

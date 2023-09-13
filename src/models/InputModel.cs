@@ -55,7 +55,7 @@ class InputModel
             Log.Info($"LoadInputImpl completed in {stopwatch.Elapsed}");
             m_notifications.AddEvent(new Notification(CompletedData: entries));
         } catch (Exception e) {
-            m_notifications.AddEvent(new Notification(ErrorMessage: e.ToString()));
+            m_notifications.AddEvent(new Notification(FatalErrorMessage: e.ToString()));
         }
     }
 

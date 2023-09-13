@@ -6,7 +6,7 @@ namespace vilark;
 class LoadingView: IView
 {
     public const int RedrawMilliseconds = 250;
-    public Notification CurrentData = new Notification();
+    public LoadingProgress LoadingProgress = new();
     private string[] spinners = { "-", "\\", "|", "/" };
 
     private string GetCurrentSpinner() {
@@ -17,12 +17,11 @@ class LoadingView: IView
 
     public override void Draw(Console console) {
         var ctx = new DrawContext(this, console);
-        var snapshot = CurrentData;
 
         string spinner = GetCurrentSpinner();
         ctx.DrawRow($"  {spinner} Looking for files...");
-        ctx.DrawRow($"  Found:   {snapshot.Processed ?? 0}");
-        ctx.DrawRow($"  Ignored: {snapshot.Ignored ?? 0}");
+        ctx.DrawRow($"  Found:   {LoadingProgress.Processed}");
+        ctx.DrawRow($"  Ignored: {LoadingProgress.Ignored}");
 
         while (ctx.usedRows < Size.height) {
             ctx.DrawRow("");

@@ -11,8 +11,8 @@ class Controller
     private Console console;
     private EventQueue<KeypressPayload> m_keyboard_events;
     private EventQueue<SignalPayload> m_signal_events;
-    public EventQueue<Notification> m_notifications;
-    public EventQueue<string> m_web_replies;
+    private EventQueue<Notification> m_notifications;
+    private EventQueue<string> m_web_replies;
     private Config m_config;
     private InputModel m_input_model;
     private OutputModel m_output_model;
@@ -29,19 +29,20 @@ class Controller
     private EventWaitHandle? m_keyboard_paused = null;
     private bool        m_child_process_running = false;
     private bool        m_web_request_running = false;
+    private bool        m_is_stopped = false;
     private System.Timers.Timer? m_redraw_timer = null;  // For the loading spinner only
 
-    public Controller(Console console, OptionsModel optionsModel)
+    public Controller(OptionsModel options)
     {
-        this.console = console;
+        m_options_model = options;
+        console = new();
         m_keyboard_events = new();
         m_signal_events = new();
         m_notifications = new();
         m_web_replies = new();
-        m_options_model = optionsModel;
 
         m_config = new();
-        m_input_model = new(optionsModel, m_config, m_notifications);
+        m_input_model = new(m_options_model, m_config, m_notifications);
         m_output_model = new(m_config);
 
         // Views
@@ -74,8 +75,7 @@ class Controller
             m_input_model.StartLoadingAsync();
             RunEventLoop();
         } catch (Exception e) {
-            Log.Info("Unclean exit");
-            Log.Exception(e);
+            Log.Info($"Exception in main thread: {e.ToString()}");
             CleanupTerminal();
             System.Console.WriteLine("Unexpected error");
             System.Console.WriteLine(e.ToString());
@@ -192,6 +192,7 @@ class Controller
     }
 
     private void UpdateSearchModel() {
+        // You can start typing in the search bar, before data is loaded
         m_input_model.SetSearchFilter(m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
         var data = m_input_model.FilteredData;
         if (data != null) {
@@ -244,12 +245,8 @@ class Controller
     private void onPosixSignal(PosixSignal sig) {
         Log.Info($"onPosixSignal {sig}, child_running={m_child_process_running}, web_running={m_web_request_running}");
 
-        if (sig == PosixSignal.SIGWINCH || sig == PosixSignal.SIGCONT) {
+        if (sig == PosixSignal.SIGWINCH) {
             if (!m_child_process_running || m_web_request_running) {
-                if (sig == PosixSignal.SIGCONT) {
-                    // todo: would a non-clearing command be better here?
-		    console.SetAlternateScreen(true);
-                }
                 Redraw();
             }
         }
@@ -259,11 +256,22 @@ class Controller
             CleanupTerminal();
         }
 
-        if (sig == PosixSignal.SIGTSTP) {
-            CleanupTerminal();
+        if (sig == PosixSignal.SIGCONT && m_is_stopped) {
+            if (!m_child_process_running || m_web_request_running) {
+                console.SetAlternateScreen(true);
+                Redraw();
+            }
+            m_is_stopped = false;
+        }
+
+        if (sig == PosixSignal.SIGTSTP && !m_is_stopped) {
+            if (!m_child_process_running || m_web_request_running) {
+                CleanupTerminal();
+            }
             // The default action of SIGTSTP doesn't send a STOP when we capture it.
             // So send it ourself.
             UnixProcess.SelfSigStop();
+            m_is_stopped = true;
         }
 
         if (sig == PosixSignal.SIGTERM) {
@@ -273,8 +281,8 @@ class Controller
 
     private void onNotification(Notification notification) {
         Log.Info($"Got notification {notification}");
-        if (notification.Processed != null) {
-            m_main_tab.m_loading_view.CurrentData = notification;
+        if (notification.LoadingProgress != null) {
+            m_main_tab.m_loading_view.LoadingProgress = notification.LoadingProgress.Value;
         }
         if (notification.CompletedData != null) {
             // Files all done loading.  Turn off the progress bar, and move to main UX
@@ -289,16 +297,17 @@ class Controller
 
             Redraw();
         }
-        if (notification.ErrorMessage != null) {
+        if (notification.FatalErrorMessage != null) {
+            Log.Info($"Fatal Error: {notification.FatalErrorMessage}");
             CleanupTerminal();
-            System.Console.WriteLine("Error when scanning files");
-            System.Console.WriteLine(notification.ErrorMessage);
+            System.Console.WriteLine("Fatal Error");
+            System.Console.WriteLine(notification.FatalErrorMessage);
             Environment.Exit(1);
         }
         if (notification.ChildExited == true) {
             Log.Info("Child process exited, re-enabling keyboard / tty reads.");
             m_child_process_running = false;
-            EnableKeyboard();  // No reason to be suspended
+            UnpauseKeyboard();  // No reason to be suspended
             Redraw();
         }
         if (notification.ForceRedraw) {
@@ -311,7 +320,7 @@ class Controller
             if (m_config.FastSwitchSearch == FastSwitchSearch.FAST_CLEAR_SEARCH) {
                 m_main_tab.m_searchbar.ClearSearch();
             }
-            EnableKeyboard();
+            UnpauseKeyboard();
             Redraw();
         }
     }
@@ -326,16 +335,15 @@ class Controller
 
     private void DoChosenItem(ISelectableItem item) {
         Log.Info("An item was chosen.");
-
-        // This will either:
-        // a. execve() and not return (it could throw an exception on failure)
-        // b. Process.Start() and wait for child process to exit
         if (m_output_model.GetEditorCommand() != null) {
             if (m_web_request_running) {
                 var fullPath = Path.GetFullPath(item.GetChoiceString());
                 m_web_replies.AddEvent(fullPath);
                 m_web_request_running = false;
             } else {
+                // This will either:
+                // a. execve() and not return (it could throw an exception on failure)
+                // b. Process.Start() and wait for child process to exit
                 m_output_model.LaunchEditor(item, m_notifications);
                 m_child_process_running = true;
             }
@@ -358,17 +366,9 @@ class Controller
         }
     }
 
-    // Called by a separate console read thread.
-    // This does not return until our main thread ack's it.
-    // This is so we can choose to launch a child process like vim and wait for it,
-    // and not read from the tty while it is running.
-    public void ExternalKeyboardInput(KeypressPayload payload) {
-        m_keyboard_events.AddEvent(payload);
-    }
-
-    private void EnableKeyboard() {
+    private void UnpauseKeyboard() {
         if (m_keyboard_paused != null) {
-            Log.Info("Enabling keyboard");
+            Log.Info("Unpausing keyboard");
             m_keyboard_paused.Set();
             m_keyboard_paused = null;
         }
@@ -377,6 +377,60 @@ class Controller
     private bool IsPreserveTerminal() {
         var e = Environment.GetEnvironmentVariable("VILARK_PRESERVE_TERMINAL");
         return (e != null && e != "0");
+    }
+
+
+    // Read from keyboard/tty in a separate thread.
+    // Forward fatal exceptions to main thread
+    public void StartKeyboard() {
+        var keyboard = new Keyboard();
+        var thread = new Thread(() => {
+                try {
+                    var doneProcessing = new EventWaitHandle(false, EventResetMode.AutoReset);
+                    while (true) {
+                        KeyPress kp = keyboard.GetKeyPress();
+                        m_keyboard_events.AddEvent(new KeypressPayload(kp, doneProcessing));
+                        // This does not return until our main thread ack's it.
+                        // This is so we can choose to launch a child process like vim and wait for it,
+                        // and not read from the tty while it is running.
+                        doneProcessing.WaitOne();
+                    }
+                } catch (Exception e) {
+                    m_notifications.AddEvent(new Notification(FatalErrorMessage: e.ToString()));
+                }
+            });
+        thread.Name = "ConsoleReadThread";
+        thread.Start();
+    }
+
+
+    // For the Zero-Lag fast UX switching
+    // Create a listening socket that the vim plugin sends a request to
+    // Set VILARK_IPC_URL before returning
+    // Forward fatal exceptions to main thread
+    public void StartIPC() {
+        if (Environment.GetEnvironmentVariable("VILARK_IPC_URL") != null) {
+            Log.Info("VILARK_IPC_URL already set, not starting another web listener");
+            return;
+        }
+
+        var apiListener = new WebListener();
+        Environment.SetEnvironmentVariable("VILARK_IPC_URL", apiListener.GetUrl());
+        var thread = new Thread(() => {
+                try {
+                    while (true) {
+                        string request = apiListener.GetRequest();
+                        m_notifications.AddEvent(new Notification(WebRequest: request));
+                        m_web_replies.ConsumerWaitHandle.WaitOne();
+                        var response = m_web_replies.TakeEvent();
+                        apiListener.SendResponse(response);
+                    }
+                } catch (Exception e) {
+                    m_notifications.AddEvent(new Notification(FatalErrorMessage: e.ToString()));
+                }
+            });
+        thread.Name = "ApiThread";
+        thread.Start();
     }
 
 }

@@ -25,15 +25,12 @@ class Log
             WriteLogMessage(message);
     }
 
+    /*
     public static void Debug(string message) {
         if (log_level >= 2)
             WriteLogMessage(message);
     }
-
-    public static void Exception(Exception e) {
-        if (log_level >= 1)
-            WriteLogMessage("[EXCEPTION] " + e.ToString());
-    }
+    */
 
     private static void WriteLogMessage(string message) {
         lock(m_lock) {
