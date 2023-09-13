@@ -20,7 +20,7 @@ if [[ "$OSTYPE" = darwin* ]] ; then
   fi
 else
   echo "Building for Linux + x86_64.  Did not detect Mac OS."
-  DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/32f2c846-5581-4638-a428-5891dd76f630/ee8beef066f06c57998058c5af6df222/dotnet-sdk-8.0.100-preview.7.23376.3-linux-x64.tar.gz
+  DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/8cccb582-1956-422a-8655-fad2fa12c247/4e86a676860c2ced06228a5c8d21718d/dotnet-sdk-8.0.100-rc.1.23455.8-linux-x64.tar.gz
 fi
 
 
