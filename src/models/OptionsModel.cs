@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 namespace vilark;
 
 class OptionsModel
@@ -58,8 +58,8 @@ Usage:
     private void ShowVersion() {
         System.Console.Write(
 $@"
-ViLark version {ViLarkMain.VERSION}
-Copyright (2023) Karl Pickett / ViLark Project
+Vilark version {VilarkMain.VERSION}
+Copyright (2023) Karl Pickett / Vilark Project
 https://github.com/kjpgit/vilark/
 ");
     }

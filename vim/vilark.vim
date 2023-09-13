@@ -1,7 +1,7 @@
 python3 << __python_vimcode_end__
 ###################################################################################################
 #
-# ViLark vim integration plugin.  (2023) Karl Pickett / ViLark project
+# Vilark vim integration plugin.  (2023) Karl Pickett / Vilark project
 #
 #
 # This plugin does not create any default key bindings.
@@ -32,20 +32,20 @@ g_vilark_plugin_version = "1.5"
 def ViLark_BrowseCurrentDirectory(edit_in_new_tab=False):
     VILARK_IPC_URL = os.environ.get("VILARK_IPC_URL", "")
     if VILARK_IPC_URL:
-        # A parent ViLark process is already running, switch to its UX for a selection
+        # A parent Vilark process is already running, switch to its UX for a selection
         try:
             with urllib.request.urlopen(VILARK_IPC_URL + "/getfile") as response:
                body = response.read()
                chosen_file = body.decode("utf-8")
         except Exception as e:
             vim.command("redraw!")
-            print("ViLark IPC Error: " + str(e))
+            print("Vilark IPC Error: " + str(e))
         else:
             vim.command("redraw!")
             _vilark_internal_open(chosen_file, edit_in_new_tab)
         return
 
-    # Run ViLark and wait for it to finish.
+    # Run Vilark and wait for it to finish.
     # If the user chooses a file, it will be written to $VILARK_OUTPUT_FILE
     # as utf8 bytes, no newline at the end.
     # If the user doesn't choose a file, it will be empty.
@@ -63,10 +63,10 @@ def ViLark_BrowseCurrentDirectory(edit_in_new_tab=False):
 def _vilark_internal_open(chosen_file, edit_in_new_tab):
     # Be cautious about print(), because a long file name (2+ lines)
     # causes vim to show a 'press enter to continue' blurb.
-    #print(f"ViLark: Selected file is {chosen_file}")
+    #print(f"Vilark: Selected file is {chosen_file}")
     vim.command("redraw!")
     if not chosen_file:
-        print("ViLark: Select was canceled")
+        print("Vilark: Select was canceled")
     else:
         if edit_in_new_tab:
             vim.command(f"ViLarkSafeTabEdit {chosen_file}")
@@ -95,10 +95,10 @@ def ViLark_BrowseCurrentBuffers():
         chosen_buffer_line = open(tmp_output.name).read()
         if chosen_buffer_line:
             chosen_buffer_num = chosen_buffer_line.strip().split(' ')[0]
-            #print(f"ViLark: Selected buffer is ({chosen_buffer_num})")
+            #print(f"Vilark: Selected buffer is ({chosen_buffer_num})")
             vim.command(f"buffer {chosen_buffer_num}")
         else:
-            print("ViLark: Select was canceled")
+            print("Vilark: Select was canceled")
 
 
 __python_vimcode_end__

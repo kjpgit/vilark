@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Text;
 using System.Collections;
 using System.Diagnostics;

@@ -1,3 +1,4 @@
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 namespace vilark;
 
 public static class EnumExtensions

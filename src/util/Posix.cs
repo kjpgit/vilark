@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;

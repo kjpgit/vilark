@@ -1,13 +1,13 @@
 #!/bin/sh
 ###################################################################################################
 #
-# Simple example of bash -> ViLark -> vim
+# Simple example of bash -> Vilark -> vim
 #
 # Creates a smart 'vi' alias.  Examples:
 #
-#  'vi'      => Choose a file from current directory ('.') with ViLark, then run vim
+#  'vi'      => Choose a file from current directory ('.') with Vilark, then run vim
 #
-#  'vi /etc' => Choose a file from '/etc/' with ViLark, then run vim
+#  'vi /etc' => Choose a file from '/etc/' with Vilark, then run vim
 #
 #  'vi /etc/hosts' => Directly open '/etc/hosts' file in vim
 #
@@ -21,7 +21,7 @@
 # * If more than one file/dir/argument is passed, this script just launches
 #   vim directly.  (Again, it doesn't try to read your mind.)
 #
-# (C) 2023 Karl Pickett / ViLark project
+# (C) 2023 Karl Pickett / Vilark project
 #
 ###################################################################################################
 
@@ -36,7 +36,7 @@ function vi() {
   [ -n "$VILARK" ] && vilark_cmd="$VILARK"
 
   if [ $arg_count = 0 ]; then
-    # Browse current directory with ViLark
+    # Browse current directory with Vilark
     EDITOR="$editor" $vilark_cmd .
   elif [ $arg_count = 1 ]; then
     # User selected one specific thing, see how to handle it.
@@ -44,7 +44,7 @@ function vi() {
       # Directly open existing file
       $editor "$1"
     elif [ -d "$1" ]; then
-      # Browse existing directory with ViLark.
+      # Browse existing directory with Vilark.
       # You probably want vim & vilark to cd and stay in this directory,
       # but if you don't, comment this line out and use the next line instead.
       (cd "$1" && EDITOR="$editor" $vilark_cmd .)

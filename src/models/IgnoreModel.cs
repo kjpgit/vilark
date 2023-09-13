@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Diagnostics;
 using Ignore;
 
@@ -7,7 +7,7 @@ namespace vilark;
 class IgnoreModel
 {
     private static readonly string defaultGlobalIgnore = @"
-# ViLark global ignores (they apply to files in any directory)
+# Vilark global ignores (they apply to files in any directory)
 # This file uses .gitignore format
 #
 # Note: These all convert to regexes, which can be slow.

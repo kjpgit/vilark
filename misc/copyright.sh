@@ -3,7 +3,7 @@ set -eu
 set -o pipefail
 cd `dirname $0`
 
-COPYRIGHT='// Copyright (C) 2023 Karl Pickett / ViLark Project'
+COPYRIGHT='// Copyright (C) 2023 Karl Pickett / Vilark Project'
 
 process() {
   while read filename; do

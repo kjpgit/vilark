@@ -1,4 +1,4 @@
-# ViLark
+# Vilark
 
 The file selector for humans. 😀
 
@@ -14,7 +14,7 @@ The file selector for humans. 😀
 ## Installation Instructions
 
 Installing on Linux, Mac, or WSL2 is simple.  The `build.sh` script will automatically
-download the .Net 8 SDK to compile ViLark to a single-file executable with
+download the .Net 8 SDK to compile Vilark to a single-file executable with
 native code (GC, but no JIT).
 
 After building, you can completely remove the .Net SDK to free up space.
@@ -23,8 +23,6 @@ After building, you can completely remove the .Net SDK to free up space.
     git clone --depth 1 https://github.com/kjpgit/vilark
     cd vilark
     ./build.sh
-
-* For a simple bash wrapper function, see [vilark.sh](vim/vilark.sh)
 
 If you have any build errors, please see the
 [Microsoft .NET 8 Native Requirements](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net8plus%2Clinux-ubuntu#prerequisites)
@@ -38,7 +36,7 @@ If you have any build errors, please see the
 
 ![iTerm2 Screenshot](doc/videos/macos-iterm.png)
 
-A modern terminal emulator (24 bit color, xterm key sequences) is required.  ViLark is tested on:
+A modern terminal emulator (24 bit color, xterm key sequences) is required.  Vilark is tested on:
 
 * [Chrome Secure Shell (aka hterm)](https://chrome.google.com/webstore/detail/secure-shell/iodihamcpbpeioajjeobimgagajmlibd)
 
@@ -63,9 +61,9 @@ for Ubuntu, as well as Brew on mac.  (Don't use the default `/usr/bin/vim` on Ma
 
 ## Additional Documentation
 
-[User Manual](doc/README.md)
+[Vilark User Guide](doc/README.md)
 
-## About ViLark
+## About Vilark
 
 Lark (noun) : A source of or quest for amusement or adventure
 
@@ -75,4 +73,4 @@ Skylark (noun) : The male skylark
 This project is the culmination of 25 years of experience.  I hope it brings you
 as much joy as it does me.
 
-© 2023 Karl Pickett / ViLark Project
+© 2023 Karl Pickett / Vilark Project

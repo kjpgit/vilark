@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 namespace vilark;
 
 class OptionsTab: IView

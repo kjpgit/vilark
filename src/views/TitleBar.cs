@@ -1,11 +1,10 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 using static vilark.BoxChars;
 
 namespace vilark;
 
 class TitleBar: IView
 {
-    //private string programName = "ViLark";
     private List<string> tabNames = new();
     private int currentTabIndex = 0;
 

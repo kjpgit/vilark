@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 namespace vilark;
 
 class HelpTab: IView
@@ -12,8 +12,8 @@ class HelpTab: IView
     public override void Draw(Console console) {
         var ctx = new DrawContext(this, console);
 
-        ctx.DrawRow($"               ViLark : Version {ViLarkMain.VERSION}");
-        ctx.DrawRow("      (C) 2023 Karl Pickett / ViLark Project");
+        ctx.DrawRow($"               Vilark : Version {VilarkMain.VERSION}");
+        ctx.DrawRow("      (C) 2023 Karl Pickett / Vilark Project");
         ctx.DrawRow("");
         ctx.DrawRow("Key Bindings");
         ctx.DrawRow("  Escape                     cancel / quit");

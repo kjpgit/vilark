@@ -1,4 +1,4 @@
-# ViLark Changelog
+# Vilark Changelog
 
 ## 2023.9.12 (Version 1.6.1)
 * Fix flickering on some terminals

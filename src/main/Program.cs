@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Karl Pickett / ViLark Project
+// Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Runtime.InteropServices;
 using System.Collections;
 using vilark;
@@ -6,7 +6,7 @@ using vilark;
 record struct KeypressPayload(KeyPress keypress, EventWaitHandle doneProcessing);
 record struct SignalPayload(PosixSignal signal, EventWaitHandle doneProcessing);
 
-class ViLarkMain
+class VilarkMain
 {
     public const string VERSION = "1.6.1";
 

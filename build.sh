@@ -38,7 +38,7 @@ if [ ! -f $DOTNET_DIR/done ]; then
   echo
 fi
 
-echo "Compiling ViLark.. "
+echo "Compiling Vilark.. "
 ./dotnet_sdk/dotnet publish src
 cp artifacts/publish/program/release/vilark .
 
@@ -92,5 +92,5 @@ echo "nnoremap <space>e :python3 ViLark_BrowseCurrentDirectory()<CR>"
 echo "nnoremap <space>E :python3 ViLark_BrowseCurrentDirectory(edit_in_new_tab=True)<CR>"
 echo "nnoremap <space>b :python3 ViLark_BrowseCurrentBuffers()<CR>"
 echo
-echo "We hope you enjoy using ViLark!"
+echo "We hope you enjoy using Vilark!"
 echo
