@@ -11,7 +11,7 @@ class TitleBar: IView
     public string CurrentTabName => tabNames[CurrentTabIndex];
     public int CurrentTabIndex => currentTabIndex;
 
-    public TitleBar() {
+    public TitleBar(IView parent) : base(parent) {
         var contentName = "Files";
         string? contentNameOverride = Environment.GetEnvironmentVariable("VILARK_INPUT_LABEL");
         if (contentNameOverride != null) {

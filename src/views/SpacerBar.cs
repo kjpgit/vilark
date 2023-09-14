@@ -11,6 +11,8 @@ namespace vilark;
 //
 class SpacerBar: IView
 {
+    public SpacerBar(IView parent) : base(parent) { }
+
     override public void Draw(Console console) {
         for (int i = 0; i < Size.height; i++) {
             int currentUsed = 0;

@@ -5,7 +5,7 @@ class HelpTab: IView
 {
     Config m_config;
 
-    public HelpTab(Config config) {
+    public HelpTab(IView parent, Config config) : base(parent) {
         m_config = config;
     }
 

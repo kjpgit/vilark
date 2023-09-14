@@ -9,6 +9,8 @@ class LoadingView: IView
     public LoadingProgress LoadingProgress = new();
     private string[] spinners = { "-", "\\", "|", "/" };
 
+    public LoadingView(IView parent) : base(parent) { }
+
     private string GetCurrentSpinner() {
         long milliseconds = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) % 1000;
         int idx = (int)milliseconds / RedrawMilliseconds;

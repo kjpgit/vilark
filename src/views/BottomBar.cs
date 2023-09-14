@@ -9,6 +9,8 @@ namespace vilark;
 //
 class BottomBar: IView
 {
+    public BottomBar(IView parent) : base(parent) { }
+
     override public void Draw(Console console) {
         console.SetCursorXY(0, 0, Size);
         console.Write(BOX_BOTTOM_LEFT);

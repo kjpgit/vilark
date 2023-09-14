@@ -5,13 +5,16 @@ class MainTab: IView
 {
     public event EventHandler<ISelectableItem>? ItemChosen;
 
-    public LoadingView m_loading_view = new();
-    public SearchBar m_searchbar = new();
-    public SpacerBar m_spacerbar = new();
+    public LoadingView m_loading_view;
+    public SearchBar m_searchbar;
+    public SpacerBar m_spacerbar;
     public ScrollView m_scrollview;
 
-    public MainTab(Config config) {
-        m_scrollview = new(config);
+    public MainTab(IView parent, Config config) : base(parent) {
+        m_scrollview = new(parent, config);
+        m_loading_view = new(parent);
+        m_searchbar = new(parent);
+        m_spacerbar = new(parent);
 
         // Initially visible views
         m_searchbar.SetVisible(true);

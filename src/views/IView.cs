@@ -3,6 +3,12 @@ namespace vilark;
 
 abstract class IView
 {
+    public IView(IView? parent) {
+        if (parent != null) {
+            parent.AddChild(this);
+        }
+    }
+
     public void DrawIfVisible(Console console) {
         if (IsVisible && Size.height > 0) {
             Draw(console);
@@ -32,7 +38,23 @@ abstract class IView
 
     public virtual void OnKeyPress(KeyPress kp) { }
 
+    protected void DrawChildren(Console console) {
+        if (m_children != null) {
+            foreach (var child in m_children) {
+                child.DrawIfVisible(console);
+            }
+        }
+    }
+
+    private void AddChild(IView child) {
+        if (m_children == null) {
+            m_children = new();
+        }
+        m_children.Add(child);
+    }
+
     // Fields for all instances
-    protected DrawRect m_size;
-    protected bool m_is_visible = false;
+    private DrawRect m_size;
+    private bool m_is_visible = false;
+    List<IView>? m_children = null;
 }

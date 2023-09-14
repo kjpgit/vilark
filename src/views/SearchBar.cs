@@ -13,7 +13,7 @@ class SearchBar: IView
     private string searchText = "";
     private int cursorPos = 0;
 
-    public SearchBar() { }
+    public SearchBar(IView parent) : base(parent) { }
 
     public override void OnKeyPress(KeyPress kp) {
         if (kp.rune != null) {

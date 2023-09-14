@@ -9,7 +9,7 @@ class OptionsTab: IView
     private int selectedIndex = 0;
     const int numControls = 9;
 
-    public OptionsTab(Config config) {
+    public OptionsTab(IView parent, Config config) : base(parent) {
         m_config = config;
     }
 

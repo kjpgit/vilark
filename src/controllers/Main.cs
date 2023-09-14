@@ -19,11 +19,7 @@ class Controller
     private OptionsModel m_options_model;
 
     // Views
-    private TitleBar m_titlebar;
-    private MainTab m_main_tab;
-    private OptionsTab m_options_tab;
-    private HelpTab m_help_tab;
-    private BottomBar m_bottombar;
+    MainWindow m_window;
 
     // User / UX State
     private EventWaitHandle? m_keyboard_paused = null;
@@ -47,16 +43,12 @@ class Controller
         m_output_model = new(m_config);
 
         // Views
-        m_titlebar = new();
-        m_main_tab = new(m_config);
-        m_options_tab = new(m_config);
-        m_help_tab = new(m_config);
-        m_bottombar = new();
+        m_window = new(m_config);
 
         // Wire up events (late binding)
-        m_main_tab.ItemChosen += OnItemChosen;
-        m_main_tab.m_searchbar.SearchChanged += OnSearchChanged;
-        m_options_tab.SearchModeChanged += OnSearchChanged;
+        m_window.m_main_tab.ItemChosen += OnItemChosen;
+        m_window.m_main_tab.m_searchbar.SearchChanged += OnSearchChanged;
+        m_window.m_options_tab.SearchModeChanged += OnSearchChanged;
 
         m_redraw_timer = new System.Timers.Timer(LoadingView.RedrawMilliseconds);
         m_redraw_timer.Elapsed += OnRedrawTimer;
@@ -71,7 +63,6 @@ class Controller
             if (!IsPreserveTerminal()) {
                 console.SetAlternateScreen(true);
             }
-            PrepareViews();
             Redraw();
             m_input_model.StartLoadingAsync();
             RunEventLoop();
@@ -93,13 +84,6 @@ class Controller
             console.SetAlternateScreen(false);
         }
         console.Flush();
-    }
-
-    private void PrepareViews() {
-        // Set initially visible views
-        m_titlebar.SetVisible(true);
-        m_main_tab.SetVisible(true);
-        m_bottombar.SetVisible(true);
     }
 
     private void RunEventLoop() {
@@ -141,19 +125,7 @@ class Controller
     private void UpdateViewDimensions() {
         var dim = console.GetDimensions();
         var winSize = new DrawRect(0, 0, dim.cols, dim.rows);
-        int usedRows = 0;
-
-        // Title
-        m_titlebar.Resize(winSize.Subrect(0, 0, winSize.width, 1));
-        usedRows += m_titlebar.Size.height;
-
-        m_main_tab.Resize(winSize.Subrect(0, usedRows, winSize.width, winSize.height - 2));
-        m_options_tab.Resize(winSize.Subrect(0, usedRows, winSize.width, winSize.height - 2));
-        m_help_tab.Resize(winSize.Subrect(0, usedRows, winSize.width, winSize.height - 2));
-        usedRows += m_main_tab.Size.height;
-
-        // Bottom Status Bar/Frame
-        m_bottombar.Resize(winSize.Subrect(0, usedRows, winSize.width, 1));
+        m_window.Resize(winSize);
     }
 
     private void Redraw() {
@@ -163,16 +135,12 @@ class Controller
         // Hide cursor while redrawing
         console.SetCursorVisible(false);
 
-        m_titlebar.DrawIfVisible(console);
-        m_main_tab.DrawIfVisible(console);
-        m_options_tab.DrawIfVisible(console);
-        m_help_tab.DrawIfVisible(console);
-        m_bottombar.DrawIfVisible(console);
+        m_window.DrawIfVisible(console);
 
         // Now re-enable and re-position cursor
-        m_main_tab.UpdateCursor(console);
-        m_options_tab.UpdateCursor(console);
-        m_help_tab.UpdateCursor(console);
+        m_window.m_main_tab.UpdateCursor(console);
+        m_window.m_options_tab.UpdateCursor(console);
+        m_window.m_help_tab.UpdateCursor(console);
 
         console.Flush();
     }
@@ -194,25 +162,12 @@ class Controller
 
     private void UpdateSearchModel() {
         // You can start typing in the search bar, before data is loaded
-        m_input_model.SetSearchFilter(m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
+        m_input_model.SetSearchFilter(m_window.m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
         var data = m_input_model.FilteredData;
         if (data != null) {
-            m_main_tab.m_scrollview.SetContentLines(data);
-            m_main_tab.m_searchbar.TotalCount = data.Count();
+            m_window.m_main_tab.m_scrollview.SetContentLines(data);
+            m_window.m_main_tab.m_searchbar.TotalCount = data.Count();
         }
-    }
-
-    private void ActiveTabChanged() {
-        m_main_tab.SetVisible(false);
-        m_options_tab.SetVisible(false);
-        m_help_tab.SetVisible(false);
-        IView v = m_titlebar.CurrentTabIndex switch {
-            0 => m_main_tab,
-            1 => m_options_tab,
-            2 => m_help_tab,
-            _ => throw new Exception("unknown tab"),
-        };
-        v.SetVisible(true);
     }
 
     private void onKeyPress(KeyPress kp) {
@@ -225,16 +180,8 @@ class Controller
             } else {
                 DoExitWithChoice(null);
             }
-        } else if (kp.keyCode == KeyCode.RIGHT_ARROW) {
-            m_titlebar.CycleTabs(1);
-            ActiveTabChanged();
-        } else if (kp.keyCode == KeyCode.LEFT_ARROW) {
-            m_titlebar.CycleTabs(-1);
-            ActiveTabChanged();
-        } else if (m_main_tab.IsVisible) {
-            m_main_tab.OnKeyPress(kp);
-        } else if (m_options_tab.IsVisible) {
-            m_options_tab.OnKeyPress(kp);
+        } else {
+            m_window.onKeyPress(kp);
         }
 
         // We redraw after every keypress, no need to handle Ctrl-L specifically
@@ -283,12 +230,12 @@ class Controller
     private void onNotification(Notification notification) {
         Log.Info($"Got notification {notification}");
         if (notification.LoadingProgress != null) {
-            m_main_tab.m_loading_view.LoadingProgress = notification.LoadingProgress.Value;
+            m_window.m_main_tab.m_loading_view.LoadingProgress = notification.LoadingProgress.Value;
         }
         if (notification.CompletedData != null) {
             // Files all done loading.  Turn off the progress bar, and move to main UX
-            m_main_tab.m_loading_view.SetVisible(false);
-            m_main_tab.m_scrollview.SetVisible(true);
+            m_window.m_main_tab.m_loading_view.SetVisible(false);
+            m_window.m_main_tab.m_scrollview.SetVisible(true);
             m_input_model.SetCompletedData(notification.CompletedData);
             // Update in case the user already typed something
             UpdateSearchModel();
@@ -319,7 +266,7 @@ class Controller
             Log.Info("Fast switching to our UX, for IPC request");
             m_web_request_running = true;
             if (m_config.FastSwitchSearch == FastSwitchSearch.FAST_CLEAR_SEARCH) {
-                m_main_tab.m_searchbar.ClearSearch();
+                m_window.m_main_tab.m_searchbar.ClearSearch();
             }
             UnpauseKeyboard();
             Redraw();

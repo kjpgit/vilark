@@ -16,7 +16,7 @@ class ScrollView: IView
     private int lineScroll = 0;
     private IEnumerable<ISelectableItem>? content_lines = null;
 
-    public ScrollView(Config config) {
+    public ScrollView(IView parent, Config config) : base(parent) {
         m_config = config;
     }
 
