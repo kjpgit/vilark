@@ -30,6 +30,7 @@ class Controller
     private bool        m_child_process_running = false;
     private bool        m_web_request_running = false;
     private bool        m_is_stopped = false;
+    private string?     m_socket_path = null;
     private System.Timers.Timer? m_redraw_timer = null;  // For the loading spinner only
 
     public Controller(OptionsModel options)
@@ -79,7 +80,7 @@ class Controller
             CleanupTerminal();
             System.Console.WriteLine("Unexpected error");
             System.Console.WriteLine(e.ToString());
-            Environment.Exit(1);
+            ProcessExit(1);
         }
     }
 
@@ -222,7 +223,7 @@ class Controller
                 m_web_replies.AddEvent("");
                 m_web_request_running = false;
             } else {
-                DoExit();
+                DoExitWithChoice(null);
             }
         } else if (kp.keyCode == KeyCode.RIGHT_ARROW) {
             m_titlebar.CycleTabs(1);
@@ -275,7 +276,7 @@ class Controller
         }
 
         if (sig == PosixSignal.SIGTERM) {
-            DoExit();
+            DoExitWithChoice(null);
         }
     }
 
@@ -302,7 +303,7 @@ class Controller
             CleanupTerminal();
             System.Console.WriteLine("Fatal Error");
             System.Console.WriteLine(notification.FatalErrorMessage);
-            Environment.Exit(1);
+            ProcessExit(1);
         }
         if (notification.ChildExited == true) {
             Log.Info("Child process exited, re-enabling keyboard / tty reads.");
@@ -325,12 +326,12 @@ class Controller
         }
     }
 
-    private void DoExit() {
-        Log.Info($"Exiting due to escape or SIGTERM. Nothing chosen. child={m_child_process_running}");
+    private void DoExitWithChoice(ISelectableItem? choice) {
+        Log.Info($"Exiting, choice={choice}, m_child_process_running={m_child_process_running}");
         CleanupTerminal();
         m_config.SaveSettings();
-        m_output_model.WriteOutput(null);
-        Environment.Exit(0);
+        m_output_model.WriteOutput(choice);
+        ProcessExit(0);
     }
 
     private void DoChosenItem(ISelectableItem item) {
@@ -348,10 +349,7 @@ class Controller
                 m_child_process_running = true;
             }
         } else {
-            CleanupTerminal();
-            m_config.SaveSettings();
-            m_output_model.WriteOutput(item);
-            Environment.Exit(0);
+            DoExitWithChoice(item);
         }
     }
 
@@ -416,6 +414,7 @@ class Controller
 
         var apiListener = new WebListener();
         Environment.SetEnvironmentVariable("VILARK_IPC_URL", apiListener.GetUrl());
+        m_socket_path = apiListener.GetUrl();
         var thread = new Thread(() => {
                 try {
                     while (true) {
@@ -431,6 +430,16 @@ class Controller
             });
         thread.Name = "ApiThread";
         thread.Start();
+    }
+
+    // Delete the socket file, to not leave junk in /tmp
+    public void ProcessExit(int statusCode) {
+        if (m_socket_path != null && File.Exists(m_socket_path)) {
+            Log.Info($"Removing socket path {m_socket_path}");
+            File.Delete(m_socket_path);
+        }
+        Log.Info($"Process exit, statusCode={statusCode}");
+        Environment.Exit(statusCode);
     }
 
 }

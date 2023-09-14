@@ -1,5 +1,9 @@
 # Vilark Changelog
 
+## 2023.9.13 (Version 1.7)
+* Use raw unix socket, instead of HTTP Listener, to save 4MB of size,
+  and improve security (only your uid can connect to it)
+
 ## 2023.9.13 (Version 1.6.2)
 * Small refactor of startup code
 * Forward exceptions to main thread

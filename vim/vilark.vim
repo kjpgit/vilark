@@ -21,7 +21,7 @@ python3 << __python_vimcode_end__
 import os
 import subprocess
 import tempfile
-import urllib.request
+import socket
 import vim
 
 # Either put vilark in your $PATH, or export VILARK=/path/to/vilark
@@ -34,9 +34,16 @@ def ViLark_BrowseCurrentDirectory(edit_in_new_tab=False):
     if VILARK_IPC_URL:
         # A parent Vilark process is already running, switch to its UX for a selection
         try:
-            with urllib.request.urlopen(VILARK_IPC_URL + "/getfile") as response:
-               body = response.read()
-               chosen_file = body.decode("utf-8")
+            buf = b""
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.connect(VILARK_IPC_URL)
+                sock.sendall(b"getfile\n")
+                while True:
+                    chunk = sock.recv(1000);
+                    if not chunk:
+                        break
+                    buf += chunk
+            chosen_file = buf.decode("utf-8")
         except Exception as e:
             vim.command("redraw!")
             print("Vilark IPC Error: " + str(e))

@@ -1,61 +1,54 @@
 // Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Diagnostics;
-using System.Net;
+using System.Net.Sockets;
 namespace vilark;
 
 class WebListener
 {
-    private HttpListener m_listener;
+    private Socket m_socket;
+    private Socket? m_client_socket = null;
     private string m_url;
-    private HttpListenerContext? m_context = null;
+    private byte[] m_buffer = new byte[1024];
 
     public string GetUrl() => m_url;
 
     public WebListener() {
-        for (int port = 61980; port < 63000; port++) {
-            string url = $"http://localhost:{port}/";
-            HttpListener listener = new HttpListener();
-            listener.Prefixes.Add(url);
-            try {
-                listener.Start();
-            } catch (Exception e) {
-                Log.Info($"Error: {e}");
-                continue;
-            }
-
-            Log.Info($"Listening OK on {url}");
-            m_listener = listener;
-            m_url = url;
-            break;
-        }
-        if (m_listener == null || m_url == null) {
-            throw new Exception("Unable to find free HTTP port");
-        }
+        var path = $"/tmp/vilark.sock.{Environment.ProcessId}";
+        m_url = path;
+        m_socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        m_socket.Bind(new UnixDomainSocketEndPoint(path));
+        m_socket.Listen(5);
     }
 
     public string GetRequest() {
         Log.Info("Waiting for request...");
-        // Note: The GetContext method blocks while waiting for a request.
-        m_context = m_listener.GetContext();
-
-        // Todo: parse request if there are different types
-        HttpListenerRequest request = m_context.Request;
-
+        m_client_socket = m_socket.Accept();
+        using (var memStream = new MemoryStream(100)) {
+            while (true) {
+                var numberOfBytesReceived = m_client_socket.Receive(m_buffer,
+                        0, m_buffer.Length, SocketFlags.None);
+                memStream.Write(m_buffer, 0, numberOfBytesReceived);
+                if (memStream.Length > 0 && memStream.GetBuffer()[memStream.Length-1] == '\n') {
+                    break;
+                }
+            }
+        }
         return "getfile";  // only one request type for now
     }
 
     public void SendResponse(string responseString) {
-        Trace.Assert(m_context != null);
-
+        Trace.Assert(m_client_socket != null);
         byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes(responseString);
-
-        HttpListenerResponse response = m_context.Response;
-        response.ContentLength64 = responseBytes.Length;
-        Stream output = response.OutputStream;
-        output.Write(responseBytes, 0, responseBytes.Length);
-        // You must close the output stream.
-        output.Close();
-        m_context = null;
+        int totalSent = 0;
+        while (totalSent != responseBytes.Length) {
+            int batch = m_client_socket.Send(responseBytes,
+                    totalSent,
+                    responseBytes.Length - totalSent,
+                    SocketFlags.None);
+            totalSent += batch;
+        }
+        m_client_socket.Close();
+        m_client_socket = null;
     }
 
 }
