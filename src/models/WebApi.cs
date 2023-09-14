@@ -41,13 +41,13 @@ class WebListener
         byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes(responseString);
         int totalSent = 0;
         while (totalSent != responseBytes.Length) {
-            int batch = m_client_socket!.Send(responseBytes,
+            int batch = m_client_socket.Send(responseBytes,
                     totalSent,
                     responseBytes.Length - totalSent,
                     SocketFlags.None);
             totalSent += batch;
         }
-        m_client_socket!.Close();
+        m_client_socket.Close();
         m_client_socket = null;
     }
 

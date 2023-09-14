@@ -66,7 +66,9 @@ class SearchBar: IView
 
         int usedCols = 0;
         console.Write(BOX_VERT);
-        console.WriteRepeated(" "u8, 5);
+        console.Write(" "u8);
+        //console.Write("☰"u8);
+        console.WriteRepeated(" "u8, 4);
         usedCols += 6;
 
         var label = new DisplayText("Search: ");

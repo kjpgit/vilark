@@ -80,7 +80,10 @@ class ScrollView: IView
         int all_count = TotalLineCount;
         var si = Size.GetScrollInfo(all_count, lineScroll);
 
-        var visible_lines = content_lines!.Skip(lineScroll).Take(Size.height).ToList();
+        List<ISelectableItem> visible_lines = new();
+        if (content_lines != null) {
+            visible_lines = content_lines.Skip(lineScroll).Take(Size.height).ToList();
+        }
 
         //Log.Info($"lineScroll: {lineScroll}");
         //Log.Info($"all_count: {all_count}");

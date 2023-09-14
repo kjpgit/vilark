@@ -44,6 +44,7 @@ class Controller
 
         // Views
         m_window = new(m_config);
+        m_window.SetVisible(true);
 
         // Wire up events (late binding)
         m_window.m_main_tab.ItemChosen += OnItemChosen;

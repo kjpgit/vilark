@@ -27,7 +27,10 @@ abstract class IView
     public DrawRect Size => m_size;
 
     // (re)draw your entire frame to the console
-    public virtual void Draw(Console console) { }
+    // By default, it draws all your visible children.
+    public virtual void Draw(Console console) {
+        DrawChildrenIfVisible(console);
+    }
 
     // (re)position and enable your cursor, if it is active.
     // This is done after all windows are done drawing, to avoid flicker.
@@ -38,9 +41,11 @@ abstract class IView
 
     public virtual void OnKeyPress(KeyPress kp) { }
 
-    protected void DrawChildren(Console console) {
+    protected void DrawChildrenIfVisible(Console console) {
         if (m_children != null) {
+            Log.Info($"Drawing children for {this} ({m_children.Count})");
             foreach (var child in m_children) {
+                Log.Info($"Child is {child}, {child.IsVisible}");
                 child.DrawIfVisible(console);
             }
         }
@@ -56,5 +61,5 @@ abstract class IView
     // Fields for all instances
     private DrawRect m_size;
     private bool m_is_visible = false;
-    List<IView>? m_children = null;
+    private List<IView>? m_children = null;
 }

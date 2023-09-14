@@ -17,10 +17,11 @@ class HelpTab: IView
         ctx.DrawRow("");
         ctx.DrawRow("Key Bindings");
         ctx.DrawRow("  Escape                     cancel / quit");
-        ctx.DrawRow("  Enter                      confirm selected file or buffer");
+        ctx.DrawRow("  Enter                      activate selected item");
+        //ctx.DrawRow("  Ctrl-Space or Alt-h        Hamburger menu (☰)");
         ctx.DrawRow("");
         ctx.DrawRow("  Left/Right                 change tab");
-        ctx.DrawRow("  Up/Down/Tab/ShiftTab       change selection");
+        ctx.DrawRow("  Up/Down/Tab/ShiftTab       change selected item");
         ctx.DrawRow("  PageUp/PageDown/Home/End   scroll (if scrollbar is indicated)");
         ctx.DrawRow("");
         ctx.DrawRow("  Ctrl-w                     delete previous word (in search box)");

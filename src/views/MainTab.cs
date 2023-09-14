@@ -11,15 +11,16 @@ class MainTab: IView
     public ScrollView m_scrollview;
 
     public MainTab(IView parent, Config config) : base(parent) {
-        m_scrollview = new(parent, config);
-        m_loading_view = new(parent);
-        m_searchbar = new(parent);
-        m_spacerbar = new(parent);
+        m_scrollview = new(this, config);
+        m_loading_view = new(this);
+        m_searchbar = new(this);
+        m_spacerbar = new(this);
 
         // Initially visible views
         m_searchbar.SetVisible(true);
         m_spacerbar.SetVisible(true);
         m_loading_view.SetVisible(true);
+        // scrollview is not visible until loading is done
     }
 
     public override void UpdateCursor(Console console) {
@@ -40,13 +41,6 @@ class MainTab: IView
         // Main file browsing area, w/scrolling
         m_loading_view.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
         m_scrollview.Resize(Size.Subrect(0, usedRows, Size.width, Size.height-usedRows));
-    }
-
-    public override void Draw(Console console) {
-        m_searchbar.DrawIfVisible(console);
-        m_spacerbar.DrawIfVisible(console);
-        m_scrollview.DrawIfVisible(console);
-        m_loading_view.DrawIfVisible(console);
     }
 
     public override void OnKeyPress(KeyPress kp) {
