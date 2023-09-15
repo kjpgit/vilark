@@ -1,5 +1,4 @@
 // Copyright (C) 2023 Karl Pickett / Vilark Project
-using System.Text;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -149,26 +148,4 @@ class UnixProcess
         }
     }
 
-    /*
-    private static void RunTerminalReset() {
-        // Hack: Set our tty back to normal/cooked mode, right before execve()
-        // 'reset' also clears the screen, so it isn't great for ctrl-z/ctrl-c handling.
-        // 'init' doesn't clear the screen, but seems to put back echo/cooked mode ok.
-        //
-        // Unfortunately, even Mono.Posix doesn't have an ioctl for this :(
-        // Request filed: https://github.com/dotnet/runtime/issues/91710
-        //
-        var pi = new ProcessStartInfo("tput");
-        pi.ArgumentList.Add("init");
-        var p = Process.Start(pi);
-        if (p != null) {
-            Log.Info("tput started");
-            p.WaitForExit();
-            Log.Info($"tput exit code: {p.ExitCode}");
-            //Thread.Sleep(1000);
-        } else {
-            Log.Info("warning: tput didn't start");
-        }
-    }
-    */
 }

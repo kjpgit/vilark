@@ -9,6 +9,12 @@
         <PublishAot>true</PublishAot>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <!-- To warn about unused usings -->
+        <!--
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        -->
     </PropertyGroup>
 
     <ItemGroup>

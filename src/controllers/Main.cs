@@ -1,6 +1,5 @@
 // Copyright (C) 2023 Karl Pickett / Vilark Project
 using System.Diagnostics;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Timers;
 namespace vilark;

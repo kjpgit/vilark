@@ -1,3 +1,10 @@
 [*.cs]
 # Don't warn about lack of windows support :)
 dotnet_diagnostic.CA1416.severity = none
+
+# Don't warn about xml comments missing
+dotnet_diagnostic.CS1591.severity = none
+
+# Warn about unused usings
+# If it is also enabled in program.csproj
+dotnet_diagnostic.IDE0005.severity = warning
