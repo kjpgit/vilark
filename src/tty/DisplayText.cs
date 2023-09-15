@@ -14,7 +14,10 @@ namespace vilark;
 readonly struct DisplayText
 {
     public DisplayText(string someArbitraryUnicodeJunk, int? maxColumns = null, bool autoFit=false,
-            ColorRGB? fgColor = null, ColorRGB? bgColor = null) {
+            ColorRGB? fgColor = null,
+            ColorRGB? bgColor = null,
+            bool Underline = false)
+    {
         NormalizedText = someArbitraryUnicodeJunk.Normalize(NormalizationForm.FormC);
 
         // This works for emojis, because they use two UTF-16 chars, and are also two columns wide.
@@ -22,6 +25,7 @@ readonly struct DisplayText
         Columns = NormalizedText.Length;
         this.fgColor = fgColor;
         this.bgColor = bgColor;
+        this.Underline = Underline;
 
         // Fixme: this is slicing characters, which could break emojis/surrogate pairs
         // Fixme: add some unit tests
@@ -42,4 +46,5 @@ readonly struct DisplayText
     public readonly int Columns;
     public readonly ColorRGB? fgColor;
     public readonly ColorRGB? bgColor;
+    public readonly bool Underline;
 }

@@ -104,8 +104,9 @@ class Console
     public void Write(DisplayText text) {
         if (text.bgColor != null) { SetBackgroundColor(text.bgColor); }
         if (text.fgColor != null) { SetForegroundColor(text.fgColor); }
+        if (text.Underline) { SetUnderline(true); }
         Write(System.Text.Encoding.UTF8.GetBytes(text.NormalizedText));
-        if (text.bgColor != null || text.fgColor != null) { ResetTextAttrs(); }
+        if (text.bgColor != null || text.fgColor != null || text.Underline) { ResetTextAttrs(); }
     }
 
     public void Write(ReadOnlySpan<byte> bytes) {

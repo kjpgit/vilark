@@ -82,26 +82,30 @@ class OptionsTab: IView
     }
 
     private void drawSlider(DrawContext ctx, int tabIndex, string label, int current) {
+        bool isSelected = (tabIndex == selectedIndex);
         int percent = MathUtil.GetPercent(current, 255);
         int sliderCols = 10 * percent / 100;
         string slider = new string('=', sliderCols);
-        string selectedMarker = (tabIndex == selectedIndex) ? "X" : " ";
+        string selectedLeft  = (isSelected) ? "▌◀" : "▏ ";
+        string selectedRight = (isSelected) ? "▶▐" : " ▕";
 
         var texts = new DisplayText[] {
-            new DisplayText($"      {selectedMarker} {label} {current,3} |"),
-            new DisplayText($"{slider, -10}"),
-            new DisplayText("|"),
+            new DisplayText($"      {selectedLeft} "),
+            new DisplayText($"{label}", Underline:isSelected),
+            new DisplayText($" {selectedRight}{slider, -10}▏"),
         };
         ctx.DrawRow(texts);
     }
 
     private void drawListSelector(DrawContext ctx, int tabIndex, string label, string current) {
-        string selectedMarker = (tabIndex == selectedIndex) ? "X" : " ";
+        bool isSelected = (tabIndex == selectedIndex);
+        string selectedLeft  = (isSelected) ? "▌◀" : "▏ ";
+        string selectedRight = (isSelected) ? "▶▐" : " ▕";
 
         var texts = new DisplayText[] {
-            new DisplayText($"      {selectedMarker} |< "),
-            new DisplayText($"{current}"),
-            new DisplayText(" >|"),
+            new DisplayText($"      {selectedLeft} "),
+            new DisplayText($"{current}", Underline:isSelected),
+            new DisplayText($" {selectedRight}"),
         };
         ctx.DrawRow(texts);
     }

@@ -1,5 +1,8 @@
 # Vilark Changelog
 
+## 2023.9.15 (Version 1.7.2)
+* Add some ▌◀ Bling ▶▐ to the options tab
+
 ## 2023.9.14 (Version 1.7.1)
 * Save settings and delete unix socket before execve()
 * Don't start socket if not launching an editor
