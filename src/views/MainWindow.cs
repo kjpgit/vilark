@@ -10,6 +10,7 @@ class MainWindow: IView
     public OptionsTab m_options_tab;
     public HelpTab m_help_tab;
     public BottomBar m_bottombar;
+    public event EventHandler<bool>? WindowClosedByEscape;
 
     public MainWindow(Config config) : base(null) {
         m_titlebar = new(this);
@@ -54,7 +55,9 @@ class MainWindow: IView
     }
 
     public void onKeyPress(KeyPress kp) {
-        if (kp.keyCode == KeyCode.RIGHT_ARROW) {
+        if (kp.keyCode == KeyCode.ESCAPE) {
+            WindowClosedByEscape?.Invoke(this, true);
+        } else if (kp.keyCode == KeyCode.RIGHT_ARROW) {
             m_titlebar.CycleTabs(1);
             ActiveTabChanged();
         } else if (kp.keyCode == KeyCode.LEFT_ARROW) {

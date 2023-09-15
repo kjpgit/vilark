@@ -46,6 +46,7 @@ class Controller
         m_window.SetVisible(true);
 
         // Wire up events (late binding)
+        m_window.WindowClosedByEscape += OnMainWindowClosedByEscape;
         m_window.m_main_tab.ItemChosen += OnItemChosen;
         m_window.m_main_tab.m_searchbar.SearchChanged += OnSearchChanged;
         m_window.m_options_tab.SearchModeChanged += OnSearchChanged;
@@ -172,17 +173,7 @@ class Controller
 
     private void onKeyPress(KeyPress kp) {
         Log.Info($"got keypress {kp}");
-
-        if (kp.keyCode == KeyCode.ESCAPE) {
-            if (m_web_request_running) {
-                m_web_listener.AddResponse("");
-                m_web_request_running = false;
-            } else {
-                DoExitWithChoice(null);
-            }
-        } else {
-            m_window.onKeyPress(kp);
-        }
+        m_window.onKeyPress(kp);
 
         // We redraw after every keypress, no need to handle Ctrl-L specifically
         if (!m_child_process_running || m_web_request_running) {
@@ -276,9 +267,17 @@ class Controller
     private void DoExitWithChoice(ISelectableItem? choice) {
         Log.Info($"Exiting, choice={choice}, m_child_process_running={m_child_process_running}");
         CleanupTerminal();
-        m_config.SaveSettings();
         m_output_model.WriteOutput(choice);
         ProcessExit(0);
+    }
+
+    private void OnMainWindowClosedByEscape(object? sender, bool unused) {
+        if (m_web_request_running) {
+            m_web_listener.AddResponse("");
+            m_web_request_running = false;
+        } else {
+            DoExitWithChoice(null);
+        }
     }
 
     private void DoChosenItem(ISelectableItem item) {
@@ -293,8 +292,7 @@ class Controller
                 // a. execve() and not return (it could throw an exception on failure)
                 // b. Process.Start() and wait for child process to exit
                 if (m_config.EditorLaunchMode == EditorLaunchMode.EDITOR_LAUNCH_REPLACE) {
-                    m_config.SaveSettings();
-                    m_web_listener.CleanupSocket();
+                    PrepareProcessExit();
                 }
                 m_output_model.LaunchEditor(item, m_notifications);
                 m_child_process_running = true;
@@ -361,9 +359,17 @@ class Controller
         m_web_listener.Start();
     }
 
-    // Delete the socket file, to not leave junk in /tmp
-    public void ProcessExit(int statusCode) {
+    // Call this before exit or execve()
+    // - Save settings
+    // - Delete the socket file, don't leave junk in /tmp
+    private void PrepareProcessExit() {
+        Log.Info($"PrepareProcessExit()");
+        m_config.SaveSettings();
         m_web_listener.CleanupSocket();
+    }
+
+    private void ProcessExit(int statusCode) {
+        PrepareProcessExit();
         Log.Info($"Process exit, statusCode={statusCode}");
         Environment.Exit(statusCode);
     }
