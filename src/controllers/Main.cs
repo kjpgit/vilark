@@ -243,6 +243,7 @@ class Controller
             Log.Info("Child process exited, re-enabling keyboard / tty reads.");
             m_child_process_running = false;
             UnpauseKeyboard();  // No reason to be suspended
+            console.SetAlternateScreen(true);
             Redraw();
         }
         if (notification.ForceRedraw) {
@@ -317,11 +318,14 @@ class Controller
         }
     }
 
+    // This is set when we are started by vim.
+    // We don't need to change the terminal main/alternate screen on
+    // startup or exit.  (This also avoids a flicker.)
+    // However, we still fix the terminal for signals and child process exits.
     private bool IsPreserveTerminal() {
         var e = Environment.GetEnvironmentVariable("VILARK_PRESERVE_TERMINAL");
         return (e != null && e != "0");
     }
-
 
     // Read from keyboard/tty in a separate thread.
     // Forward fatal exceptions to main thread
@@ -345,7 +349,6 @@ class Controller
         thread.Name = "ConsoleReadThread";
         thread.Start();
     }
-
 
     // For the Zero-Lag fast UX switching
     // Create a listening socket that the vim plugin sends a request to

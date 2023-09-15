@@ -3,6 +3,7 @@
 ## 2023.9.14 (Version 1.7.1)
 * Save settings and delete unix socket before execve()
 * Don't start socket if not launching an editor
+* Revert the vim plugin terminal overrides, ctrl-z seems to be fixed now.
 * refactor: put all UX objects inside a main window container
 
 ## 2023.9.13 (Version 1.7)

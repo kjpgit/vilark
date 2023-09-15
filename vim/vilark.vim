@@ -113,10 +113,3 @@ __python_vimcode_end__
 " Work around for fnameescape not being directly exposed to python
 command! -nargs=1 ViLarkSafeEdit execute 'edit' fnameescape(<f-args>)
 command! -nargs=1 ViLarkSafeTabEdit execute 'tabedit' fnameescape(<f-args>)
-
-" Make vim not mess with the terminal at all, when it's started as a child
-" process from vilark.  Vilark will restore to main screen when it exits.
-" These options come from ":help restorescreen"
-if !empty($VILARK_IPC_URL)
-    set t_ti= t_te=
-endif
