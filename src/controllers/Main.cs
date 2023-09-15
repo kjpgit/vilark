@@ -157,10 +157,6 @@ class Controller
         UpdateSearchModel();
     }
 
-    private void OnItemChosen(object? sender, ISelectableItem item) {
-        DoChosenItem(item);
-    }
-
     private void UpdateSearchModel() {
         // You can start typing in the search bar, before data is loaded
         m_input_model.SetSearchFilter(m_window.m_main_tab.m_searchbar.SearchText, m_config.FuzzySearchMode);
@@ -280,7 +276,7 @@ class Controller
         }
     }
 
-    private void DoChosenItem(ISelectableItem item) {
+    private void OnItemChosen(object? sender, ISelectableItem item) {
         Log.Info("An item was chosen.");
         if (m_output_model.GetEditorCommand() != null) {
             if (m_web_request_running) {
