@@ -46,10 +46,11 @@ A modern terminal emulator (24 bit color, xterm key sequences) is required.  Vil
 
 * Linux console, xterm, lxterminal, gnome-terminal
 
-NOTE: The Google Roboto Mono font is buggy
-[(bug)](https://github.com/google/fonts/issues/360)
-and is missing certain box drawing
-characters and/or they have incorrect widths.
+NOTE: The Google Roboto Mono font is
+[missing](https://github.com/google/fonts/issues/360)
+certain box drawing
+characters and/or they have incorrect widths.  Recommended fonts are
+"Consolas" or "Cascadia Code".
 
 NOTE: Apple's Terminal.App and rxvt do not support 24 bit color codes,
 their so usage is not recommended.
