@@ -86,26 +86,30 @@ class OptionsTab: IView
         int percent = MathUtil.GetPercent(current, 255);
         int sliderCols = 10 * percent / 100;
         string slider = new string('=', sliderCols);
-        string selectedLeft  = (isSelected) ? "▌◀" : "▏ ";
-        string selectedRight = (isSelected) ? "▶▐" : " ▕";
+        string selectedLeft  = isSelected ? BoxChars.SELECTED_LEFT : BoxChars.UNSELECTED_LEFT;
+        string selectedRight = isSelected ? BoxChars.SELECTED_RIGHT : BoxChars.UNSELECTED_RIGHT;
+        ColorRGB? fg = isSelected ? m_config.SelectionFGColor : null;
+        ColorRGB? bg = isSelected ? m_config.SelectionBGColor : null;
 
         var texts = new DisplayText[] {
-            new DisplayText($"      {selectedLeft} "),
-            new DisplayText($"{label}", Underline:isSelected),
-            new DisplayText($" {selectedRight}{slider, -10}▏"),
+            new DisplayText($"      "),
+            new DisplayText($"{selectedLeft} {label} {current,3} {selectedRight}", fgColor: fg, bgColor: bg),
+            new DisplayText($"[{slider, -10}]"),
         };
         ctx.DrawRow(texts);
     }
 
     private void drawListSelector(DrawContext ctx, int tabIndex, string label, string current) {
         bool isSelected = (tabIndex == selectedIndex);
-        string selectedLeft  = (isSelected) ? "▌◀" : "▏ ";
-        string selectedRight = (isSelected) ? "▶▐" : " ▕";
+        string selectedLeft  = (isSelected) ? BoxChars.SELECTED_LEFT : BoxChars.UNSELECTED_LEFT;
+        string selectedRight = (isSelected) ? BoxChars.SELECTED_RIGHT : BoxChars.UNSELECTED_RIGHT;
+        ColorRGB? fg = isSelected ? m_config.SelectionFGColor : null;
+        ColorRGB? bg = isSelected ? m_config.SelectionBGColor : null;
 
         var texts = new DisplayText[] {
-            new DisplayText($"      {selectedLeft} "),
-            new DisplayText($"{current}", Underline:isSelected),
-            new DisplayText($" {selectedRight}"),
+            new DisplayText($"      "),
+            new DisplayText($"{selectedLeft} {current} {selectedRight}", fgColor: fg, bgColor: bg),
+            new DisplayText($""),
         };
         ctx.DrawRow(texts);
     }

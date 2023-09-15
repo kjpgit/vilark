@@ -27,18 +27,24 @@ class BoxChars
     static public UTF8Str SCROLLBAR_INDICATOR     => "▓"u8;
     static public UTF8Str SCROLLBAR_BACKGROUND    => "░"u8;
 
-    static public UTF8Str CURVE_TOP_LEFT          => "╭"u8;
-    static public UTF8Str CURVE_TOP_RIGHT         => "╮"u8;
+    //static public UTF8Str CURVE_TOP_LEFT          => "╭"u8;
+    //static public UTF8Str CURVE_TOP_RIGHT         => "╮"u8;
+    //static public UTF8Str CURVE_BOTTOM_LEFT       => "╰"u8;
+    //static public UTF8Str CURVE_BOTTOM_RIGHT      => "╯"u8;
 
-    static public UTF8Str CURVE_BOTTOM_LEFT       => "╰"u8;
-    static public UTF8Str CURVE_BOTTOM_RIGHT      => "╯"u8;
+    // A lot of fonts don't have these :(
+    // Cascadia Code does.
+    //static public UTF8Str LEFT_ARROW_SOLID        => "◀"u8;
+    //static public UTF8Str RIGHT_ARROW_SOLID       => "▶"u8;
+    //static public UTF8Str RIGHT_BLOCK_18          => "▕"u8;
+    //static public UTF8Str RIGHT_BLOCK_12          => "▐"u8;
+    //static public UTF8Str LEFT_BLOCK_18           => "▏"u8;
+    //static public UTF8Str LEFT_BLOCK_12           => "▌"u8;
 
-    static public UTF8Str LEFT_ARROW_SOLID        => "◀"u8;
-    static public UTF8Str RIGHT_ARROW_SOLID       => "▶"u8;
-
-    static public UTF8Str RIGHT_BLOCK_18          => "▕"u8;
-    static public UTF8Str RIGHT_BLOCK_12          => "▐"u8;
-    static public UTF8Str LEFT_BLOCK_18           => "▏"u8;
-    static public UTF8Str LEFT_BLOCK_12           => "▌"u8;
+    // Use these boring ones, they work on more systems.
+    static public string SELECTED_LEFT     => "<";
+    static public string SELECTED_RIGHT    => ">";
+    static public string UNSELECTED_LEFT   => "[";
+    static public string UNSELECTED_RIGHT  => "]";
 
 }
