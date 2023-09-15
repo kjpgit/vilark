@@ -5,7 +5,7 @@ namespace vilark;
 
 class WebListener
 {
-    private OutputModel outputModel;
+    private OutputModel m_output_model;
     private EventQueue<Notification> m_notifications;
     private Socket? m_socket = null;
     private Socket? m_client_socket = null;
@@ -14,7 +14,7 @@ class WebListener
     private EventQueue<string> m_web_replies = new();
 
     public WebListener(OutputModel outputModel, EventQueue<Notification> notifications) {
-        this.outputModel = outputModel;
+        m_output_model = outputModel;
         m_notifications = notifications;
     }
 
@@ -27,7 +27,7 @@ class WebListener
         }
 
         // Don't start socket for the buffer selector
-        if (outputModel.GetEditorCommand() == null) {
+        if (m_output_model.GetEditorCommand() == null) {
             Log.Info("No editor command set, not starting web listener");
             return;
         }
