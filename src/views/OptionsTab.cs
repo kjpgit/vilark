@@ -100,7 +100,7 @@ class OptionsTab: IView
 
         var texts = new DisplayText[] {
             new DisplayText($"      {selectedMarker} |< "),
-            new DisplayText($"{current, -17}"),
+            new DisplayText($"{current}"),
             new DisplayText(" >|"),
         };
         ctx.DrawRow(texts);
