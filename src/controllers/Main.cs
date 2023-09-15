@@ -12,11 +12,11 @@ class Controller
     private EventQueue<KeypressPayload> m_keyboard_events;
     private EventQueue<SignalPayload> m_signal_events;
     private EventQueue<Notification> m_notifications;
-    private EventQueue<string> m_web_replies;
     private Config m_config;
     private InputModel m_input_model;
     private OutputModel m_output_model;
     private OptionsModel m_options_model;
+    private WebListener m_web_listener;
 
     // Views
     MainWindow m_window;
@@ -26,7 +26,6 @@ class Controller
     private bool        m_child_process_running = false;
     private bool        m_web_request_running = false;
     private bool        m_is_stopped = false;
-    private string?     m_socket_path = null;
     private System.Timers.Timer? m_redraw_timer = null;  // For the loading spinner only
 
     public Controller(OptionsModel options)
@@ -36,11 +35,11 @@ class Controller
         m_keyboard_events = new();
         m_signal_events = new();
         m_notifications = new();
-        m_web_replies = new();
 
         m_config = new();
         m_input_model = new(m_options_model, m_config, m_notifications);
         m_output_model = new(m_config);
+        m_web_listener = new(m_output_model, m_notifications);
 
         // Views
         m_window = new(m_config);
@@ -176,7 +175,7 @@ class Controller
 
         if (kp.keyCode == KeyCode.ESCAPE) {
             if (m_web_request_running) {
-                m_web_replies.AddEvent("");
+                m_web_listener.AddResponse("");
                 m_web_request_running = false;
             } else {
                 DoExitWithChoice(null);
@@ -287,12 +286,16 @@ class Controller
         if (m_output_model.GetEditorCommand() != null) {
             if (m_web_request_running) {
                 var fullPath = Path.GetFullPath(item.GetChoiceString());
-                m_web_replies.AddEvent(fullPath);
+                m_web_listener.AddResponse(fullPath);
                 m_web_request_running = false;
             } else {
                 // This will either:
                 // a. execve() and not return (it could throw an exception on failure)
                 // b. Process.Start() and wait for child process to exit
+                if (m_config.EditorLaunchMode == EditorLaunchMode.EDITOR_LAUNCH_REPLACE) {
+                    m_config.SaveSettings();
+                    m_web_listener.CleanupSocket();
+                }
                 m_output_model.LaunchEditor(item, m_notifications);
                 m_child_process_running = true;
             }
@@ -355,37 +358,12 @@ class Controller
     // Set VILARK_IPC_URL before returning
     // Forward fatal exceptions to main thread
     public void StartIPC() {
-        if (Environment.GetEnvironmentVariable("VILARK_IPC_URL") != null) {
-            Log.Info("VILARK_IPC_URL already set, not starting another web listener");
-            return;
-        }
-
-        var apiListener = new WebListener();
-        Environment.SetEnvironmentVariable("VILARK_IPC_URL", apiListener.GetUrl());
-        m_socket_path = apiListener.GetUrl();
-        var thread = new Thread(() => {
-                try {
-                    while (true) {
-                        string request = apiListener.GetRequest();
-                        m_notifications.AddEvent(new Notification(WebRequest: request));
-                        m_web_replies.ConsumerWaitHandle.WaitOne();
-                        var response = m_web_replies.TakeEvent();
-                        apiListener.SendResponse(response);
-                    }
-                } catch (Exception e) {
-                    m_notifications.AddEvent(new Notification(FatalErrorMessage: e.ToString()));
-                }
-            });
-        thread.Name = "ApiThread";
-        thread.Start();
+        m_web_listener.Start();
     }
 
     // Delete the socket file, to not leave junk in /tmp
     public void ProcessExit(int statusCode) {
-        if (m_socket_path != null && File.Exists(m_socket_path)) {
-            Log.Info($"Removing socket path {m_socket_path}");
-            File.Delete(m_socket_path);
-        }
+        m_web_listener.CleanupSocket();
         Log.Info($"Process exit, statusCode={statusCode}");
         Environment.Exit(statusCode);
     }

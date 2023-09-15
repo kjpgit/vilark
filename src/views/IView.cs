@@ -43,9 +43,9 @@ abstract class IView
 
     protected void DrawChildrenIfVisible(Console console) {
         if (m_children != null) {
-            Log.Info($"Drawing children for {this} ({m_children.Count})");
+            //Log.Info($"Drawing children for {this} ({m_children.Count})");
             foreach (var child in m_children) {
-                Log.Info($"Child is {child}, {child.IsVisible}");
+                //Log.Info($"Child is {child}, {child.IsVisible}");
                 child.DrawIfVisible(console);
             }
         }

@@ -41,7 +41,7 @@ class OutputModel
     }
 
     // Launch a process, but only if something was chosen, and an editor is set.
-    public void LaunchEditor(ISelectableItem? chosenItem, EventQueue<Notification> loadingEvent) {
+    public void LaunchEditor(ISelectableItem? chosenItem, EventQueue<Notification> notifications) {
         var editorCommand = GetEditorCommand();
         if (editorCommand != null && chosenItem != null) {
             var s = chosenItem.GetChoiceString();
@@ -54,7 +54,7 @@ class OutputModel
                 envs = envs.Where(val => !val.StartsWith("VILARK_IPC_URL")).ToArray();
                 UnixProcess.Exec(editorCommand, args, envs);
             } else {
-                UnixProcess.StartChild(editorCommand, args, loadingEvent);
+                UnixProcess.StartChild(editorCommand, args, notifications);
             }
         }
     }
