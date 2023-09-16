@@ -5,13 +5,13 @@
 #
 # Creates a smart 'vi' alias.  Examples:
 #
-#  'vi'      => Choose a file from current directory ('.') with Vilark, then run vim
+#  'vi'      -> Browse current directory ('.') with Vilark, then run vim
 #
-#  'vi /etc' => Choose a file from '/etc/' with Vilark, then run vim
+#  'vi /etc' -> Browse selected directory ('/etc') with Vilark, then run vim
 #
-#  'vi /etc/hosts' => Directly open '/etc/hosts' file in vim
+#  'vi /etc/hosts' -> Directly open '/etc/hosts' file in vim
 #
-#  'vi /tmp/notfound.txt' => Directly open '/tmp/notfound.txt' file in vim
+#  'vi /etc/no_such_file' -> Directly open '/tmp/no_such_file' file in vim
 #
 # Notes:
 #
@@ -26,7 +26,8 @@
 ###################################################################################################
 
 
-unalias vi
+unalias vi 2>/dev/null || :  # Ensure an alias doesn't override us
+
 function vi() {
   local vilark_cmd="vilark"
   local editor="vim"
