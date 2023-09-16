@@ -12,7 +12,7 @@
 
 [Starting Vilark - Normal](guide_start_normal.md)
 
-[Starting Vilark - Zero Lag](guide_start_zero_lag.md)
+[Starting Vilark - Zero Lag UX Switching](guide_start_zero_lag.md)
 
 ## Using Vilark
 
