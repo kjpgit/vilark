@@ -1,51 +1,74 @@
 #!/bin/bash
 
-# Simple build / install script for users that doesn't require make.
-# It requires curl.
+# Simple build / install script for users
+# Usage: ./build.sh
 
 set -eu
 set -o pipefail
 cd `dirname $0`
 
+DOTNET_URL_MAC_ARM="https://download.visualstudio.microsoft.com/download/pr/2a79b5ad-82a7-4615-a73b-91bf24028471/0e6a5c6d7f8b792a421e3796a93ef0a1/dotnet-sdk-8.0.100-osx-arm64.tar.gz"
+DOTNET_URL_MAC_X64="https://download.visualstudio.microsoft.com/download/pr/e59acfc2-5987-43f9-bd03-0cbe446679e1/7db7313c1c99104279a69ccd47d160a1/dotnet-sdk-8.0.100-osx-x64.tar.gz"
+DOTNET_URL_LINUX_X64="https://download.visualstudio.microsoft.com/download/pr/5226a5fa-8c0b-474f-b79a-8984ad7c5beb/3113ccbf789c9fd29972835f0f334b7a/dotnet-sdk-8.0.100-linux-x64.tar.gz"
+
 # Build automatically on Linux/x64, Mac/x64, and Mac/ARM
-# Note that Linux/ARM is also supported in theory, but you need to download that SDK manually.
 echo "Machine Information: $OSTYPE - $HOSTTYPE"
 if [[ "$OSTYPE" = darwin* ]] ; then
   if [[ $HOSTTYPE = arm64 ]] || [[ $HOSTTYPE = aarch64 ]]; then
     echo "Building for Mac OS + ARM"
-    DOTNET_URL="https://download.visualstudio.microsoft.com/download/pr/63ee7355-c179-4684-9187-afb3acaed7b2/f2a5414c6b0189f57555d03ce73413a2/dotnet-sdk-8.0.100-preview.7.23376.3-osx-arm64.tar.gz"
+    DOTNET_URL=$DOTNET_URL_MAC_ARM
   else
     echo "Building for Mac OS + x86_64"
-    DOTNET_URL="https://download.visualstudio.microsoft.com/download/pr/2206f0d7-f812-408f-bed7-ed9bd043768f/ca7eb1331ee61fdd684c27638fdc6a90/dotnet-sdk-8.0.100-preview.7.23376.3-osx-x64.tar.gz"
+    DOTNET_URL=$DOTNET_URL_MAC_X64
   fi
 else
   echo "Building for Linux + x86_64.  Did not detect Mac OS."
-  DOTNET_URL=https://download.visualstudio.microsoft.com/download/pr/8cccb582-1956-422a-8655-fad2fa12c247/4e86a676860c2ced06228a5c8d21718d/dotnet-sdk-8.0.100-rc.1.23455.8-linux-x64.tar.gz
+  DOTNET_URL=$DOTNET_URL_LINUX_X64
 fi
 
+# CLI args can override autodetected settings
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--docker" ]; then
+    DOTNET_URL=USE_DOCKER
+    shift
+  else
+    echo "Unknown argument: $1"
+    exit 2
+  fi
+done
 
-INSTALL_DIR=~/.local/bin
-VIM_INSTALL_DIR=~/.vim/plugin/vilark
-DOTNET_DIR=dotnet_sdk
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
-export DOTNET_NOLOGO=1
 
-if [ ! -f $DOTNET_DIR/done ]; then
-  echo "Downloading and extracting dotnet SDK (200 MB) to $DOTNET_DIR/ ..."
-  mkdir -p $DOTNET_DIR
-  curl $DOTNET_URL | tar -xz -C $DOTNET_DIR
-  touch $DOTNET_DIR/done
-  echo
+if [ $DOTNET_URL = USE_DOCKER ]; then
+  # Build using docker
+  docker build -t vilark .
+  docker rm -f vilark_cont
+  docker create --name vilark_cont vilark
+  docker cp vilark_cont:/build/out/vilark .
+else
+  # Build using local toolchain
+  DOTNET_DIR=dotnet_sdk
+  export DOTNET_CLI_TELEMETRY_OPTOUT=1
+  export DOTNET_NOLOGO=1
+  if [ ! -f $DOTNET_DIR/done ]; then
+    echo "Downloading and extracting dotnet SDK (200 MB) to $DOTNET_DIR/ ..."
+    mkdir -p $DOTNET_DIR
+    curl $DOTNET_URL | tar -xz -C $DOTNET_DIR
+    touch $DOTNET_DIR/done
+    echo
+  fi
+
+  echo "Compiling Vilark.. "
+  ./dotnet_sdk/dotnet publish src
+  cp artifacts/publish/program/release/vilark .
 fi
-
-echo "Compiling Vilark.. "
-./dotnet_sdk/dotnet publish src
-cp artifacts/publish/program/release/vilark .
 
 echo
 echo "✅ Build Complete!"
 echo
 
+
+INSTALL_DIR=~/.local/bin
+VIM_INSTALL_DIR=~/.vim/plugin/vilark
 echo "Do you want to install the vilark executable to $INSTALL_DIR ?"
 echo
 read -p " [y/n]: " CONFIRM
