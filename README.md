@@ -11,25 +11,34 @@ The file selector for humans. 😀
 
 
 
-## Installation Instructions
+## Installation Instructions - Docker
 
-Installing on Linux, Mac, or WSL2 is simple.  The `build.sh` script will automatically
-download the .Net 8 SDK to compile Vilark to a single-file executable with
-native code (GC, but no JIT).
+To build with Docker (for Linux or WSL2):
 
-After building, you can completely remove the .Net SDK to free up space.
+    cd /tmp
+    git clone --depth 1 https://github.com/kjpgit/vilark
+    cd vilark
+    ./build.sh --docker
+
+## Installation Instructions - Without Docker
+
+To build without Docker (Linux, Mac, WSL2):
 
     cd /tmp
     git clone --depth 1 https://github.com/kjpgit/vilark
     cd vilark
     ./build.sh
 
+The `build.sh` script will automatically download the .Net 8 SDK to compile
+Vilark to a single-file executable with native code (GC, but no JIT).
+
+After building, you can completely remove the .Net SDK to free up space.
+
 If you have any build errors, please see the
 [Microsoft .NET 8 Native Requirements](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net8plus%2Clinux-ubuntu#prerequisites)
 , which are basically:
 
     sudo apt-get install clang zlib1g-dev
-
 
 
 ## Supported Terminals

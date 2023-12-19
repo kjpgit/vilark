@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simple build / install script for users
-# Usage: ./build.sh
+# Usage: ./build.sh [--docker]
 
 set -eu
 set -o pipefail
